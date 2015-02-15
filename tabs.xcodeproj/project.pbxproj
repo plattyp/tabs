@@ -14,6 +14,8 @@
 		82B3026D1A8D9A9700832E7E /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 82B3026B1A8D9A9700832E7E /* LaunchScreen.xib */; };
 		82B302791A8D9A9700832E7E /* tabsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82B302781A8D9A9700832E7E /* tabsTests.swift */; };
 		82B302871A8E22BF00832E7E /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 82B302861A8E22BF00832E7E /* Main.storyboard */; };
+		82B302891A8FEF3E00832E7E /* Contact.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82B302881A8FEF3E00832E7E /* Contact.swift */; };
+		82B3028B1A900FC500832E7E /* ContactListCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82B3028A1A900FC500832E7E /* ContactListCell.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -38,6 +40,8 @@
 		82B302771A8D9A9700832E7E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		82B302781A8D9A9700832E7E /* tabsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = tabsTests.swift; sourceTree = "<group>"; };
 		82B302861A8E22BF00832E7E /* Main.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = Main.storyboard; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		82B302881A8FEF3E00832E7E /* Contact.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Contact.swift; sourceTree = "<group>"; };
+		82B3028A1A900FC500832E7E /* ContactListCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContactListCell.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -82,6 +86,8 @@
 				82B302861A8E22BF00832E7E /* Main.storyboard */,
 				82B3025F1A8D9A9700832E7E /* AppDelegate.swift */,
 				82B302641A8D9A9700832E7E /* ViewController.swift */,
+				82B3028A1A900FC500832E7E /* ContactListCell.swift */,
+				82B302881A8FEF3E00832E7E /* Contact.swift */,
 				82B302691A8D9A9700832E7E /* Images.xcassets */,
 				82B3026B1A8D9A9700832E7E /* LaunchScreen.xib */,
 				82B302611A8D9A9700832E7E /* tabs.xcdatamodeld */,
@@ -215,6 +221,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				82B302891A8FEF3E00832E7E /* Contact.swift in Sources */,
+				82B3028B1A900FC500832E7E /* ContactListCell.swift in Sources */,
 				82B302651A8D9A9700832E7E /* ViewController.swift in Sources */,
 				82B302601A8D9A9700832E7E /* AppDelegate.swift in Sources */,
 				82B302631A8D9A9700832E7E /* tabs.xcdatamodeld in Sources */,

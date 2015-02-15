@@ -9,9 +9,41 @@
 import UIKit
 import AddressBook
 import AddressBookUI
+import CoreData
 
-class ViewController: UIViewController, ABPeoplePickerNavigationControllerDelegate {
+class ViewController: UIViewController, ABPeoplePickerNavigationControllerDelegate, UITableViewDataSource, UITableViewDelegate {
 
+    var contacts  = [Contact]()
+    
+    @IBOutlet weak var numContactLabel: UILabel!
+    
+    @IBOutlet var tableView: UITableView!
+    
+    @IBAction func refreshContactList(sender: AnyObject) {
+        fetchContacts()
+        
+        numContactLabel.text = "\(contacts.count)"
+        
+        tableView.reloadData()
+    }
+    
+    lazy var managedObjectContext : NSManagedObjectContext? = {
+        let appDelegate = UIApplication.sharedApplication().delegate as AppDelegate
+        if let managedObjectContext = appDelegate.managedObjectContext {
+            return managedObjectContext
+        }
+        else {
+            return nil
+        }
+        }()
+    
+    //Reference to the Address Book
+    lazy var addressBook: ABAddressBookRef = {
+        var error: Unmanaged<CFError>?
+        return ABAddressBookCreateWithOptions(nil,
+            &error).takeRetainedValue() as ABAddressBookRef
+        }()
+    
     @IBAction func addContactButton(sender: AnyObject) {
         checkAddressBookPermissions()
         peoplePicker()
@@ -19,12 +51,62 @@ class ViewController: UIViewController, ABPeoplePickerNavigationControllerDelega
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view, typically from a nib.
+        
+        //Styling for table
+        tableView.layer.borderWidth = 2.0
+        var tblView = UIView(frame: CGRectZero)
+        //Hide the footer rows
+        tableView.tableFooterView = tblView
+        tableView.tableFooterView?.hidden = true
+        tableView.backgroundColor = UIColor.whiteColor()
     }
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
+    }
+    
+    //
+    // All methods for controlling the table
+    //
+    
+    
+    func numberOfSectionsInTableView(tableView: UITableView) -> Int {
+        return 1
+    }
+    
+    func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return contacts.count
+    }
+    
+    func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
+        var myCell:ContactListCell = tableView.dequeueReusableCellWithIdentifier("cell") as ContactListCell
+        
+        // Get the timer for this index
+        let contactItem = contacts[indexPath.row]
+        
+        myCell.nameLabel.text = retrievePersonInfo(contactItem.recordid.intValue)
+        
+        return myCell
+    }
+    
+    
+    //Used to retrieve the latest from Contact and Insert the results into the contacts array
+    func fetchContacts() -> Bool {
+        let fetchRequest = NSFetchRequest(entityName: "Contact")
+        
+        // Create a sort descriptor object that sorts on the "timerName"
+        // property of the Core Data object
+        let sortDescriptor = NSSortDescriptor(key: "recordid", ascending: true)
+        
+        // Set the list of sort descriptors in the fetch request,
+        // so it includes the sort descriptor
+        fetchRequest.sortDescriptors = [sortDescriptor]
+        
+        if let fetchResults = managedObjectContext!.executeFetchRequest(fetchRequest, error: nil) as? [Contact] {
+            contacts = fetchResults
+        }
+        return true
     }
     
     func checkAddressBookPermissions() {
@@ -39,8 +121,6 @@ class ViewController: UIViewController, ABPeoplePickerNavigationControllerDelega
             NSLog("Authorized")
         } else {
             //If the status has not been Authorized or Denied
-            var addressBook:ABAddressBookRef?
-            
             ABAddressBookRequestAccessWithCompletion(addressBook, {success, error in
                 if success {
                     NSLog("It worked!")
@@ -49,6 +129,57 @@ class ViewController: UIViewController, ABPeoplePickerNavigationControllerDelega
                     self.alertUser("No Access", message: "This application requires acccess to Contacts in order to operate. Please grant permissions to continue. \n (Settings -> App -> Toggle Contacts)")
                 }
             })
+        }
+    }
+    
+    func peoplePickerNavigationController(peoplePicker: ABPeoplePickerNavigationController!, didSelectPerson person: ABRecordRef!) {
+        let emails: ABMultiValueRef = ABRecordCopyValue(person, kABPersonEmailProperty).takeRetainedValue()
+        if (ABRecordGetRecordID(person) > 0) {
+            let index = 0 as CFIndex
+            
+            //let email = ABMultiValueCopyValueAtIndex(emails, index).takeRetainedValue() as String
+        
+            let identifier = ABRecordGetRecordID(person)
+            
+            //Create & Save new Intance of Contact
+            Contact.createInManagedObjectContext(self.managedObjectContext!, recordid: Int(identifier))
+            
+            //Save
+            save()
+            
+        } else {
+            println("No Record Found")
+        }
+    }
+    
+    func retrievePersonInfo(person: ABRecordID) -> String {
+        checkAddressBookPermissions()
+        
+        var personName = ""
+        
+        if (person > 0) {
+            let record = ABAddressBookGetPersonWithRecordID(addressBook, person)
+        
+            var personRef:ABRecordRef = Unmanaged<NSObject>.fromOpaque(record.toOpaque()).takeUnretainedValue() as ABRecordRef
+            
+            let firstName = ABRecordCopyValue(personRef, kABPersonFirstNameProperty).takeRetainedValue() as String
+            
+            let lastName  = ABRecordCopyValue(personRef, kABPersonLastNameProperty).takeRetainedValue() as String
+            
+            personName = firstName + " " + lastName
+            
+            println("Person Name: \(personName)")
+        } else {
+            NSLog("Cannot find record")
+        }
+        
+        return personName
+    }
+    
+    func save() {
+        var error : NSError?
+        if(managedObjectContext!.save(&error) ) {
+            println(error?.localizedDescription)
         }
     }
     
