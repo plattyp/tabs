@@ -16,6 +16,10 @@
 		82B302871A8E22BF00832E7E /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 82B302861A8E22BF00832E7E /* Main.storyboard */; };
 		82B302891A8FEF3E00832E7E /* Contact.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82B302881A8FEF3E00832E7E /* Contact.swift */; };
 		82B3028B1A900FC500832E7E /* ContactListCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82B3028A1A900FC500832E7E /* ContactListCell.swift */; };
+		82B302931A91803A00832E7E /* ContactTable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82B302921A91803A00832E7E /* ContactTable.swift */; };
+		82B48B391A918ABB00E07C35 /* ContactTable.xib in Resources */ = {isa = PBXBuildFile; fileRef = 82B48B381A918ABB00E07C35 /* ContactTable.xib */; };
+		82B48B3B1A918CD700E07C35 /* ContactViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82B48B3A1A918CD700E07C35 /* ContactViewController.swift */; };
+		82B48B3D1A92071000E07C35 /* ContactListCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 82B48B3C1A92071000E07C35 /* ContactListCell.xib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -42,6 +46,10 @@
 		82B302861A8E22BF00832E7E /* Main.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = Main.storyboard; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		82B302881A8FEF3E00832E7E /* Contact.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Contact.swift; sourceTree = "<group>"; };
 		82B3028A1A900FC500832E7E /* ContactListCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContactListCell.swift; sourceTree = "<group>"; };
+		82B302921A91803A00832E7E /* ContactTable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContactTable.swift; sourceTree = "<group>"; };
+		82B48B381A918ABB00E07C35 /* ContactTable.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = ContactTable.xib; sourceTree = "<group>"; };
+		82B48B3A1A918CD700E07C35 /* ContactViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContactViewController.swift; sourceTree = "<group>"; };
+		82B48B3C1A92071000E07C35 /* ContactListCell.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = ContactListCell.xib; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -92,6 +100,10 @@
 				82B3026B1A8D9A9700832E7E /* LaunchScreen.xib */,
 				82B302611A8D9A9700832E7E /* tabs.xcdatamodeld */,
 				82B3025D1A8D9A9700832E7E /* Supporting Files */,
+				82B302921A91803A00832E7E /* ContactTable.swift */,
+				82B48B381A918ABB00E07C35 /* ContactTable.xib */,
+				82B48B3A1A918CD700E07C35 /* ContactViewController.swift */,
+				82B48B3C1A92071000E07C35 /* ContactListCell.xib */,
 			);
 			path = tabs;
 			sourceTree = "<group>";
@@ -201,7 +213,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				82B48B3D1A92071000E07C35 /* ContactListCell.xib in Resources */,
 				82B3026D1A8D9A9700832E7E /* LaunchScreen.xib in Resources */,
+				82B48B391A918ABB00E07C35 /* ContactTable.xib in Resources */,
 				82B3026A1A8D9A9700832E7E /* Images.xcassets in Resources */,
 				82B302871A8E22BF00832E7E /* Main.storyboard in Resources */,
 			);
@@ -222,8 +236,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				82B302891A8FEF3E00832E7E /* Contact.swift in Sources */,
+				82B48B3B1A918CD700E07C35 /* ContactViewController.swift in Sources */,
 				82B3028B1A900FC500832E7E /* ContactListCell.swift in Sources */,
 				82B302651A8D9A9700832E7E /* ViewController.swift in Sources */,
+				82B302931A91803A00832E7E /* ContactTable.swift in Sources */,
 				82B302601A8D9A9700832E7E /* AppDelegate.swift in Sources */,
 				82B302631A8D9A9700832E7E /* tabs.xcdatamodeld in Sources */,
 			);
@@ -409,6 +425,7 @@
 				82B3027E1A8D9A9700832E7E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		82B3027F1A8D9A9700832E7E /* Build configuration list for PBXNativeTarget "tabsTests" */ = {
 			isa = XCConfigurationList;
@@ -417,6 +434,7 @@
 				82B302811A8D9A9700832E7E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 
