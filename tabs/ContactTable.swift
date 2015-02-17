@@ -18,6 +18,8 @@ import CoreData
     var nibName: String = "ContactTable"
     
     var rowHeight: CGFloat! = 50
+    
+    var groups: [Int: String] = [1: "Group 1", 2: "Group 2", 3: "Group 3"]
 
     //Reference to the Address Book
     lazy var addressBook: ABAddressBookRef = {
@@ -45,16 +47,16 @@ import CoreData
         get {
             return groupNameLabel.text!
         }
-        set(groupName) {
-            if (groupName.isEmpty) {
+        set(groupid) {
+            if (groupid.isEmpty) {
                 groupNameLabel.text = ""
             } else {
-                groupNameLabel.text = groupName.uppercaseString
+                groupNameLabel.text = groups[groupid.toInt()!]
             }
         }
     }
     
-    @IBAction func settingsButtonPressed(sender: AnyObject) {
+    @IBAction func buttonPressed(sender: AnyObject) {
         refreshTable()
     }
     
@@ -92,6 +94,9 @@ import CoreData
         tableView.backgroundColor = UIColor.whiteColor()
         
         tableView.registerNib(UINib(nibName: "ContactListCell", bundle: nil), forCellReuseIdentifier: "cell")
+        
+        //Get Data
+        fetchContacts()
     }
     
     func loadViewFromNib() -> UIView {
@@ -120,6 +125,11 @@ import CoreData
         let contactItem = contacts[indexPath.row]
         
         myCell.nameLabel.text = retrievePersonInfo(contactItem.recordid.intValue)
+        
+        // Run this on the last row to trim the size of the table based on rows
+        if (indexPath.row == (contacts.count - 1)) {
+            setTableHeight()
+        }
         
         return myCell
     }
@@ -169,17 +179,12 @@ import CoreData
     }
     
     func setTableHeight() {
-        var count:CGFloat = CGFloat(contacts.count)
-        var newHeight = rowHeight * count
-        
-        var tableFrame:CGRect = tableView.frame
-        tableFrame.size.height = newHeight
-        tableView.frame = tableFrame
+        var frame:CGRect = self.tableView.frame
+        frame.size.height = self.tableView.contentSize.height
+        self.tableView.frame = frame
     }
     
     func refreshTable() {
-        fetchContacts()
-        setTableHeight()
         tableView.reloadData()
     }
 

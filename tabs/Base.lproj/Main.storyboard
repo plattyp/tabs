@@ -117,7 +117,7 @@
                         <rect key="frame" x="0.0" y="64" width="414" height="736"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <tableView clipsSubviews="YES" contentMode="scaleToFill" ambiguous="YES" misplaced="YES" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="382" sectionHeaderHeight="22" sectionFooterHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="lTg-WP-Ip1">
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" ambiguous="YES" misplaced="YES" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="lTg-WP-Ip1">
                                 <rect key="frame" x="0.0" y="28" width="414" height="725"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <prototypes>
@@ -127,15 +127,18 @@
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="yjR-WC-YdL" id="Ggc-Gk-tZf">
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
-                                                <view tag="10" contentMode="scaleToFill" ambiguous="YES" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="nPX-Wf-PSe" customClass="ContactTable" customModule="tabs" customModuleProvider="target">
+                                                <view tag="10" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="nPX-Wf-PSe" customClass="ContactTable" customModule="tabs" customModuleProvider="target">
                                                     <rect key="frame" x="29" y="11" width="356" height="363"/>
                                                     <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                                 </view>
                                             </subviews>
                                             <constraints>
-                                                <constraint firstAttribute="centerX" secondItem="nPX-Wf-PSe" secondAttribute="centerX" id="Lod-Zl-mmI"/>
+                                                <constraint firstItem="nPX-Wf-PSe" firstAttribute="leading" secondItem="Ggc-Gk-tZf" secondAttribute="leadingMargin" constant="21" id="FiZ-Xw-tRV"/>
+                                                <constraint firstItem="nPX-Wf-PSe" firstAttribute="top" secondItem="Ggc-Gk-tZf" secondAttribute="topMargin" constant="3" id="YL5-am-Hjv"/>
+                                                <constraint firstAttribute="trailingMargin" secondItem="nPX-Wf-PSe" secondAttribute="trailing" constant="21" id="pZi-Sw-8j7"/>
                                             </constraints>
                                         </tableViewCellContentView>
+                                        <color key="backgroundColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
                                     </tableViewCell>
                                 </prototypes>
                                 <connections>
@@ -158,7 +161,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="z4Y-C3-8yi" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1489" y="268"/>
+            <point key="canvasLocation" x="1599" y="268"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="tzk-nT-NhF">

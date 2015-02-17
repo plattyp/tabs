@@ -15,22 +15,10 @@
             <rect key="frame" x="0.0" y="0.0" width="356" height="355"/>
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
             <subviews>
-                <navigationBar contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="9zn-Iz-wPf">
-                    <rect key="frame" x="0.0" y="0.0" width="356" height="44"/>
-                    <items>
-                        <navigationItem id="lPn-ms-BoM">
-                            <barButtonItem key="rightBarButtonItem" systemItem="action" id="jL3-Om-EzC">
-                                <connections>
-                                    <action selector="settingsButtonPressed:" destination="-1" id="lwd-Y2-KoI"/>
-                                </connections>
-                            </barButtonItem>
-                        </navigationItem>
-                    </items>
-                </navigationBar>
                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="GROUP NAME" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="JMy-zf-faV">
                     <rect key="frame" x="8" y="11" width="298" height="21"/>
                     <fontDescription key="fontDescription" type="boldSystem" pointSize="17"/>
-                    <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                    <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                     <nil key="highlightedColor"/>
                 </label>
                 <tableView clipsSubviews="YES" contentMode="scaleToFill" fixedFrame="YES" alwaysBounceVertical="YES" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="EQm-PI-1GN">
@@ -41,8 +29,19 @@
                         <outlet property="delegate" destination="-1" id="ITa-Rz-VoX"/>
                     </connections>
                 </tableView>
+                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="detailDisclosure" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="T7z-xx-rSB">
+                    <rect key="frame" x="326" y="11" width="22" height="22"/>
+                    <color key="tintColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                    <connections>
+                        <action selector="buttonPressed:" destination="-1" eventType="touchUpInside" id="L0K-oY-cbI"/>
+                    </connections>
+                </button>
             </subviews>
-            <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+            <color key="backgroundColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+            <constraints>
+                <constraint firstAttribute="trailing" secondItem="T7z-xx-rSB" secondAttribute="trailing" constant="8" id="Nsb-La-zzg"/>
+                <constraint firstItem="T7z-xx-rSB" firstAttribute="top" secondItem="iN0-l3-epB" secondAttribute="top" constant="11" id="mfh-gl-SF8"/>
+            </constraints>
             <nil key="simulatedStatusBarMetrics"/>
             <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
             <point key="canvasLocation" x="129" y="402.5"/>
