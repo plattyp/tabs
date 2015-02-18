@@ -9,8 +9,11 @@
 import UIKit
 
 class ContactListCell: UITableViewCell {
-
-    @IBOutlet weak var nameLabel: UILabel!
+    
+    //Row Outlets
+    @IBOutlet weak var personNameLabel: UILabel!
+    @IBOutlet weak var dateLastContactedLabel: UILabel!
+    @IBOutlet weak var daysSinceLastContactedLabel: UILabel!
     
     override func awakeFromNib() {
         super.awakeFromNib()

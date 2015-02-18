@@ -14,7 +14,8 @@ import CoreData
 class ContactViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
 
     @IBOutlet weak var tableView: UITableView!
-    
+
+    //Reference to Managed Object Context
     lazy var managedObjectContext : NSManagedObjectContext? = {
         let appDelegate = UIApplication.sharedApplication().delegate as AppDelegate
         if let managedObjectContext = appDelegate.managedObjectContext {
@@ -25,12 +26,21 @@ class ContactViewController: UIViewController, UITableViewDelegate, UITableViewD
         }
         }()
     
+    //Reference to the Address Book
+    lazy var addressBook: ABAddressBookRef = {
+        var error: Unmanaged<CFError>?
+        return ABAddressBookCreateWithOptions(nil,
+            &error).takeRetainedValue() as ABAddressBookRef
+        }()
+    
     var groups = [1,2,3]
-    var rowHeight = 53.0
-    var viewOverheadHeight = 35.0
+    var contacts  = [Contact]()
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        //Temporarily load contacts here
+        fetchContacts()
     }
     
     override func viewWillAppear(animated: Bool) {
@@ -43,7 +53,6 @@ class ContactViewController: UIViewController, UITableViewDelegate, UITableViewD
         
         //Other Properties
         self.view.backgroundColor = UIColor.lightGrayColor()
-        
     }
 
     override func didReceiveMemoryWarning() {
@@ -54,42 +63,37 @@ class ContactViewController: UIViewController, UITableViewDelegate, UITableViewD
     //Used to redraw the cells
     func refreshCells() {
         println("Cells being refreshed!")
+        tableView.reloadData()
     }
     
     //Table View
     func numberOfSectionsInTableView(tableView: UITableView) -> Int {
-        return 1
+        return groups.count
     }
     
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return groups.count
+        var group = groups[section]
+        //This will need to perform a query to determine actual count based on group
+        return contacts.count
     }
     
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         
-        var myCell:UITableViewCell = tableView.dequeueReusableCellWithIdentifier("viewCell", forIndexPath: indexPath) as UITableViewCell
+        var myCell:ContactListCell = tableView.dequeueReusableCellWithIdentifier("cell", forIndexPath: indexPath) as ContactListCell
         
-        var myView = myCell.contentView.viewWithTag(10) as ContactTable
+        var contactItem:Contact = contacts[indexPath.row]
         
-        myView.groupName = String(groups[indexPath.row])
+        var contactInfo:ContactInfo = retrievePersonInfo(contactItem.recordid.intValue)
+        
+        myCell.personNameLabel.text = contactInfo.personName
+        myCell.daysSinceLastContactedLabel.text = "\(contactInfo.daysLastContacted)"
+        myCell.dateLastContactedLabel.text = contactInfo.lastContactDate
         
         return myCell
     }
     
-    
-    func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
-        var group = groups[indexPath.row]
-        
-        var rows = groupContactsCount(group)
-        
-        var totalRowHeight = rowHeight * Double(rows)
-        
-        var totalHeight:CGFloat = CGFloat(totalRowHeight + viewOverheadHeight)
-        
-        return totalHeight
-    }
-    
-    func groupContactsCount(group: Int) -> Int {
+    //Used to retrieve the latest from Contact and Insert the results into the contacts array
+    func fetchContacts() -> Bool {
         let fetchRequest = NSFetchRequest(entityName: "Contact")
         
         // Create a sort descriptor object that sorts on the "timerName"
@@ -100,12 +104,37 @@ class ContactViewController: UIViewController, UITableViewDelegate, UITableViewD
         // so it includes the sort descriptor
         fetchRequest.sortDescriptors = [sortDescriptor]
         
-        var contacts = [Contact]()
-        
         if let fetchResults = managedObjectContext!.executeFetchRequest(fetchRequest, error: nil) as? [Contact] {
             contacts = fetchResults
         }
+        return true
+    }
+    
+    func retrievePersonInfo(person: ABRecordID) -> ContactInfo {
         
-        return contacts.count
+        var personName:String = ""
+        var lastContactedDate:String = "11/11/1989"
+        var daysLastContacted:Int = 22
+        
+        if (person > 0) {
+            let record = ABAddressBookGetPersonWithRecordID(addressBook, person)
+            
+            var personRef:ABRecordRef = Unmanaged<NSObject>.fromOpaque(record.toOpaque()).takeUnretainedValue() as ABRecordRef
+            
+            let firstName = ABRecordCopyValue(personRef, kABPersonFirstNameProperty).takeRetainedValue() as String
+            
+            let lastName  = ABRecordCopyValue(personRef, kABPersonLastNameProperty).takeRetainedValue() as String
+            
+            personName = firstName + " " + lastName
+            
+            println("Person's Name: \(personName)")
+            
+        } else {
+            NSLog("Cannot find record")
+        }
+    
+        var contactItem:ContactInfo = ContactInfo.init(personName: personName, lastContactDate: lastContactedDate, daysLastContacted: daysLastContacted)
+        
+        return contactItem
     }
 }
