@@ -85,26 +85,52 @@ class ContactViewController: UIViewController, UITableViewDelegate, UITableViewD
         return groups.count
     }
     
+    //Modify the header
+    func tableView(tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+        var group = groups[section]
+        
+        return group.name
+    }
+    
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         var group = groups[section]
         
+        var rows: Int = 0
+        
+        if contacts.count == 0 {
+            rows = 1
+        } else {
+            rows = contacts.count
+        }
+        
         //This will need to perform a query to determine actual count based on group
-        return contacts.count
+        return rows
     }
     
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
+   
+        if contacts.count == 0 {
+            var myCell:UITableViewCell = tableView.dequeueReusableCellWithIdentifier("errorCell", forIndexPath: indexPath) as UITableViewCell
+            
+            myCell.selectionStyle = UITableViewCellSelectionStyle.None
+            
+            return myCell
+            
+        } else {
+            
+            var myCell:ContactListCell = tableView.dequeueReusableCellWithIdentifier("cell", forIndexPath: indexPath) as ContactListCell
+            
+            var contactItem:Contact = contacts[indexPath.row]
+            
+            var contactInfo:ContactInfo = retrievePersonInfo(contactItem.recordid.intValue)
+            
+            myCell.personNameLabel.text = contactInfo.personName
+            myCell.daysSinceLastContactedLabel.text = "\(contactInfo.daysLastContacted)"
+            myCell.dateLastContactedLabel.text = contactInfo.lastContactDate
+            
+            return myCell
+        }
         
-        var myCell:ContactListCell = tableView.dequeueReusableCellWithIdentifier("cell", forIndexPath: indexPath) as ContactListCell
-        
-        var contactItem:Contact = contacts[indexPath.row]
-        
-        var contactInfo:ContactInfo = retrievePersonInfo(contactItem.recordid.intValue)
-        
-        myCell.personNameLabel.text = contactInfo.personName
-        myCell.daysSinceLastContactedLabel.text = "\(contactInfo.daysLastContacted)"
-        myCell.dateLastContactedLabel.text = contactInfo.lastContactDate
-        
-        return myCell
     }
     
     //Used to retrieve the latest from Contact and Insert the results into the contacts array
