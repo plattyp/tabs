@@ -3,11 +3,15 @@
     <entity name="Contact" representedClassName="tabs.Contact" syncable="YES">
         <attribute name="recordid" optional="YES" attributeType="Integer 32" defaultValueString="0" syncable="YES"/>
     </entity>
-    <entity name="Group" syncable="YES">
+    <entity name="Group" representedClassName="tabs.Group" syncable="YES">
+        <attribute name="dayswatched" optional="YES" attributeType="Integer 32" defaultValueString="0" syncable="YES"/>
         <attribute name="name" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="watchcalls" optional="YES" attributeType="Boolean" syncable="YES"/>
+        <attribute name="watchfacetimes" optional="YES" attributeType="Boolean" syncable="YES"/>
+        <attribute name="watchtexts" optional="YES" attributeType="Boolean" syncable="YES"/>
     </entity>
     <elements>
         <element name="Contact" positionX="-272" positionY="-139" width="128" height="58"/>
-        <element name="Group" positionX="-63" positionY="-18" width="128" height="60"/>
+        <element name="Group" positionX="-63" positionY="-18" width="128" height="118"/>
     </elements>
 </model>

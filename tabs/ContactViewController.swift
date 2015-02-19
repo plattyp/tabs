@@ -33,11 +33,14 @@ class ContactViewController: UIViewController, UITableViewDelegate, UITableViewD
             &error).takeRetainedValue() as ABAddressBookRef
         }()
     
-    var groups = [1,2,3]
+    var groups = [Group]()
     var contacts  = [Contact]()
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        //Retrieves all of the groups from CoreData
+        fetchGroups()
         
         //Temporarily load contacts here
         fetchContacts()
@@ -48,8 +51,10 @@ class ContactViewController: UIViewController, UITableViewDelegate, UITableViewD
         
         //Set the navigation bar
         self.title = "Your Tabs"
-        var refreshButton = UIBarButtonItem(barButtonSystemItem: .Refresh, target: self, action: "refreshCells")
+        var refreshButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.Refresh, target: self, action: "refreshCells")
         navigationItem.leftBarButtonItem = refreshButton
+        var plusButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.Add, target: self, action: "addGroup")
+        navigationItem.rightBarButtonItem = plusButton
         
         //Other Properties
         self.view.backgroundColor = UIColor.lightGrayColor()
@@ -62,8 +67,17 @@ class ContactViewController: UIViewController, UITableViewDelegate, UITableViewD
     
     //Used to redraw the cells
     func refreshCells() {
-        println("Cells being refreshed!")
+        println("Group Count: \(groups.count)")
+        
+        for group in groups {
+            println("\(group.name)")
+        }
+        
         tableView.reloadData()
+    }
+    
+    func addGroup() {
+        performSegueWithIdentifier("addGroupSegue", sender: nil)
     }
     
     //Table View
@@ -73,6 +87,7 @@ class ContactViewController: UIViewController, UITableViewDelegate, UITableViewD
     
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         var group = groups[section]
+        
         //This will need to perform a query to determine actual count based on group
         return contacts.count
     }
@@ -110,6 +125,24 @@ class ContactViewController: UIViewController, UITableViewDelegate, UITableViewD
         return true
     }
     
+    //Used to retrieve the latest from Group and Insert the results into the groups array
+    func fetchGroups() -> Bool {
+        let fetchRequest = NSFetchRequest(entityName: "Group")
+        
+        // Create a sort descriptor object that sorts on the "timerName"
+        // property of the Core Data object
+        let sortDescriptor = NSSortDescriptor(key: "name", ascending: true)
+        
+        // Set the list of sort descriptors in the fetch request,
+        // so it includes the sort descriptor
+        fetchRequest.sortDescriptors = [sortDescriptor]
+        
+        if let fetchResults = managedObjectContext!.executeFetchRequest(fetchRequest, error: nil) as? [Group] {
+            groups = fetchResults
+        }
+        return true
+    }
+    
     func retrievePersonInfo(person: ABRecordID) -> ContactInfo {
         
         var personName:String = ""
@@ -137,4 +170,5 @@ class ContactViewController: UIViewController, UITableViewDelegate, UITableViewD
         
         return contactItem
     }
+    
 }
