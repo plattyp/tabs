@@ -16,8 +16,9 @@ class Group: NSManagedObject {
     @NSManaged var watchtexts: Bool
     @NSManaged var watchcalls: Bool
     @NSManaged var watchfacetimes: Bool
+    @NSManaged var interval: String
     
-    class func createInManagedObjectContext(moc: NSManagedObjectContext, name: String, dayswatched: Int, watchtexts: Bool, watchcalls: Bool, watchfacetimes: Bool) -> Group {
+    class func createInManagedObjectContext(moc: NSManagedObjectContext, name: String, dayswatched: Int, watchtexts: Bool, watchcalls: Bool, watchfacetimes: Bool, interval: String) -> Group {
         let newGroup = NSEntityDescription.insertNewObjectForEntityForName("Group", inManagedObjectContext: moc) as Group
         
         newGroup.name = name
@@ -25,8 +26,13 @@ class Group: NSManagedObject {
         newGroup.watchtexts = watchtexts
         newGroup.watchcalls = watchcalls
         newGroup.watchfacetimes = watchfacetimes
+        newGroup.interval = interval
         
         return newGroup
+    }
+    
+    override init(entity: NSEntityDescription, insertIntoManagedObjectContext context: NSManagedObjectContext?) {
+        super.init(entity: entity, insertIntoManagedObjectContext: context)
     }
 
 }

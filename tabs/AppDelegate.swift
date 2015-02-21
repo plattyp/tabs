@@ -7,17 +7,52 @@
 //
 
 import UIKit
+import AddressBook
 import CoreData
 
 @UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate {
+class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
 
     var window: UIWindow?
 
 
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
         // Override point for customization after application launch.
+        
+        // Check if the application has access to the concacts
+        checkAddressBookPermissions()
+        
         return true
+    }
+    
+    func checkAddressBookPermissions() {
+        //Check existing status of the Address Book Permissions
+        if(ABAddressBookGetAuthorizationStatus() == ABAuthorizationStatus.Denied ||
+            ABAddressBookGetAuthorizationStatus() == ABAuthorizationStatus.Restricted) {
+                
+                //Send alert that user is denied or restricted
+                alertUser("No Access", message: "This application requires acccess to Contacts in order to operate. Please grant permissions to continue. \n (Settings -> App -> Toggle Contacts)")
+                
+                } else if (ABAddressBookGetAuthorizationStatus() == ABAuthorizationStatus.Authorized) {
+                    NSLog("Authorized")
+            } else {
+            //If the status has not been Authorized or Denied
+                var addressBook:ABAddressBookRef?
+            
+                ABAddressBookRequestAccessWithCompletion(addressBook, {success, error in
+                if success {
+                    NSLog("It worked!")
+                } else {
+                    //Send alert that user is denied or restricted
+                    self.alertUser("No Access", message: "This application requires acccess to Contacts in order to operate. Please grant permissions to continue. \n (Settings -> App -> Toggle Contacts)")
+                }
+            })
+        }
+    }
+    
+    func alertUser(alert: NSString, message: NSString) {
+        var alert = UIAlertView(title: alert, message: message, delegate: self, cancelButtonTitle: nil, otherButtonTitles: "OK")
+        alert.show()
     }
 
     func applicationWillResignActive(application: UIApplication) {
