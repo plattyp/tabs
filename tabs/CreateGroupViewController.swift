@@ -10,7 +10,7 @@ import UIKit
 import CoreData
 import AddressBookUI
 
-class CreateGroupViewController: UIViewController, ABPeoplePickerNavigationControllerDelegate {
+class CreateGroupViewController: UIViewController, ABPeoplePickerNavigationControllerDelegate, ManageContactsDelegate {
 
     //Reference to Managed Object Context
     lazy var managedObjectContext : NSManagedObjectContext? = {
@@ -31,19 +31,28 @@ class CreateGroupViewController: UIViewController, ABPeoplePickerNavigationContr
     @IBOutlet weak var facetimesToggle: UISwitch!
     @IBOutlet weak var trackedContactsLabel: UILabel!
     
-    let picker = ABPeoplePickerNavigationController()
     var groupObjectID  = NSManagedObjectID()
     var group = [Group]()
     var contacts = [ABRecordID]()
     var groupInterval:String = "days"
     
+    @IBAction func manageContactsButton(sender: AnyObject) {
+        performSegueWithIdentifier("manageContactsSegue", sender: self)
+    }
+    
     @IBAction func createGroupButton(sender: AnyObject) {
         
         var days = Int(round(daysWatchedSlider.value))
         
-        Group.createInManagedObjectContext(managedObjectContext!, name: groupNameInput.text, dayswatched: days, watchtexts: textMessagesToggle.enabled, watchcalls: phoneCallToggle.enabled, watchfacetimes: facetimesToggle.enabled, interval: groupInterval)
+        var group = Group.createInManagedObjectContext(managedObjectContext!, name: groupNameInput.text, dayswatched: days, watchtexts: textMessagesToggle.enabled, watchcalls: phoneCallToggle.enabled, watchfacetimes: facetimesToggle.enabled, interval: groupInterval)
         
         save()
+        
+        //Save contacts to the group
+        for contact in contacts {
+            Contact.createInManagedObjectContext(managedObjectContext!, recordid: Int(contact), group: group)
+            save()
+        }
         
         performSegueWithIdentifier("createToMainSegue", sender: nil)
         
@@ -75,11 +84,6 @@ class CreateGroupViewController: UIViewController, ABPeoplePickerNavigationContr
         
     }
     
-    @IBAction func addContactsButton(sender: AnyObject) {
-        peoplePicker()
-    }
-    
-    
     @IBAction func sliderChanged(sender: AnyObject) {
         var units = daysWatchedSlider.value
         var unitsrounded = round(units)
@@ -103,6 +107,10 @@ class CreateGroupViewController: UIViewController, ABPeoplePickerNavigationContr
         
         // Do any additional setup after loading the view.
         setupView()
+    }
+    
+    override func viewDidAppear(animated: Bool) {
+        refreshContactCounter()
     }
 
     override func didReceiveMemoryWarning() {
@@ -183,30 +191,17 @@ class CreateGroupViewController: UIViewController, ABPeoplePickerNavigationContr
         self.view.endEditing(true)
     }
     
-    //For control of the people picker
-    func peoplePicker() {
-        picker.peoplePickerDelegate = self
-        
-        presentViewController(picker, animated: true, completion: nil)
+    func manageContactsDidFinish(controller: ManageContactsTableViewController, contactList: [ABRecordID]) {
+        contacts = contactList
+        controller.navigationController?.popViewControllerAnimated(true)
     }
     
-    func peoplePickerNavigationController(peoplePicker: ABPeoplePickerNavigationController!, didSelectPerson person: ABRecordRef!) {
-        let emails: ABMultiValueRef = ABRecordCopyValue(person, kABPersonEmailProperty).takeRetainedValue()
-        if (ABRecordGetRecordID(person) > 0) {
-            let index = 0 as CFIndex
-            
-            let identifier = ABRecordGetRecordID(person)
-            
-            if contains(contacts,identifier) == false {
-                contacts.append(identifier)
-            }
-            
-            refreshContactCounter()
-            
-        } else {
-            println("No Record Found")
+    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject!) {
+        if segue.identifier == "manageContactsSegue" {
+            let vc = segue.destinationViewController as ManageContactsTableViewController
+            vc.contacts = contacts
+            vc.delegate = self
         }
-
     }
     
 }

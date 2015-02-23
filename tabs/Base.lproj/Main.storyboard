@@ -230,11 +230,11 @@
                             </label>
                             <button opaque="NO" contentMode="scaleToFill" ambiguous="YES" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="yfn-sL-Mon">
                                 <rect key="frame" x="219" y="451" width="76" height="30"/>
-                                <state key="normal" title="(Add More)">
+                                <state key="normal" title="(Manage)">
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <connections>
-                                    <action selector="addContactsButton:" destination="rV4-th-lbM" eventType="touchUpInside" id="IgU-f9-I3a"/>
+                                    <action selector="manageContactsButton:" destination="rV4-th-lbM" eventType="touchUpInside" id="4vf-XE-6zi"/>
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="fhi-Dz-bNE">
@@ -297,11 +297,54 @@
                         <outlet property="textMessagesToggle" destination="lKu-cs-Ygz" id="Mf6-hK-lFS"/>
                         <outlet property="trackedContactsLabel" destination="Xgv-eI-gr2" id="tcR-JA-hQg"/>
                         <segue destination="eSD-1V-XXN" kind="show" identifier="createToMainSegue" id="MaA-pZ-Kxa"/>
+                        <segue destination="dck-iB-mlQ" kind="show" identifier="manageContactsSegue" id="1sZ-s8-djO"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="g4T-oN-zRX" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="2286" y="-3"/>
+        </scene>
+        <!--Manage Contacts Table View Controller-->
+        <scene sceneID="cic-OQ-tPO">
+            <objects>
+                <tableViewController id="dck-iB-mlQ" customClass="ManageContactsTableViewController" customModule="tabs" customModuleProvider="target" sceneMemberID="viewController">
+                    <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="jrH-B3-Jau">
+                        <rect key="frame" x="0.0" y="0.0" width="414" height="736"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <prototypes>
+                            <tableViewCell contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="nameCell" id="YE0-nP-Pm9" customClass="NameLabelCell" customModule="tabs" customModuleProvider="target">
+                                <autoresizingMask key="autoresizingMask"/>
+                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="YE0-nP-Pm9" id="CGn-uS-20q">
+                                    <autoresizingMask key="autoresizingMask"/>
+                                    <subviews>
+                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" text="Andrew Phillips" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="x78-LV-gPf">
+                                            <rect key="frame" x="8" y="12" width="398" height="21"/>
+                                            <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                            <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                            <nil key="highlightedColor"/>
+                                        </label>
+                                    </subviews>
+                                    <constraints>
+                                        <constraint firstItem="x78-LV-gPf" firstAttribute="top" secondItem="CGn-uS-20q" secondAttribute="topMargin" constant="3" id="ET4-oV-cxo"/>
+                                        <constraint firstItem="x78-LV-gPf" firstAttribute="leading" secondItem="CGn-uS-20q" secondAttribute="leadingMargin" id="Sck-Tz-1sN"/>
+                                    </constraints>
+                                </tableViewCellContentView>
+                                <connections>
+                                    <outlet property="nameLabel" destination="x78-LV-gPf" id="LsE-LU-d5W"/>
+                                </connections>
+                            </tableViewCell>
+                        </prototypes>
+                        <connections>
+                            <outlet property="dataSource" destination="dck-iB-mlQ" id="BD8-lO-nev"/>
+                            <outlet property="delegate" destination="dck-iB-mlQ" id="78i-qW-IoA"/>
+                        </connections>
+                    </tableView>
+                    <simulatedScreenMetrics key="simulatedDestinationMetrics" type="retina55"/>
+                </tableViewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="Sh3-Fk-xRT" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="3000" y="-145"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="tzk-nT-NhF">

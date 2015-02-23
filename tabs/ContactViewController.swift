@@ -35,6 +35,7 @@ class ContactViewController: UIViewController, UITableViewDelegate, UITableViewD
     
     var groups = [Group]()
     var contacts  = [Contact]()
+    var contactsbygroup = Dictionary<Group,Array<Contact>>()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -42,8 +43,8 @@ class ContactViewController: UIViewController, UITableViewDelegate, UITableViewD
         //Retrieves all of the groups from CoreData
         fetchGroups()
         
-        //Temporarily load contacts here
-        fetchContacts()
+        //Load contacts to be readable by table
+        loadContactDictionary()
     }
     
     override func viewWillAppear(animated: Bool) {
@@ -97,10 +98,12 @@ class ContactViewController: UIViewController, UITableViewDelegate, UITableViewD
         
         var rows: Int = 0
         
-        if contacts.count == 0 {
+        var count = contactsbygroup[group]?.count
+        
+        if count == 0 {
             rows = 1
         } else {
-            rows = contacts.count
+            rows = count!
         }
         
         //This will need to perform a query to determine actual count based on group
@@ -109,7 +112,12 @@ class ContactViewController: UIViewController, UITableViewDelegate, UITableViewD
     
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
    
-        if contacts.count == 0 {
+        var group = groups[indexPath.section]
+        var contactResults = contactsbygroup[group]
+        
+        var totalrowcount = contactResults?.count
+        
+        if totalrowcount == 0 {
             var myCell:UITableViewCell = tableView.dequeueReusableCellWithIdentifier("errorCell", forIndexPath: indexPath) as UITableViewCell
             
             myCell.selectionStyle = UITableViewCellSelectionStyle.None
@@ -119,10 +127,12 @@ class ContactViewController: UIViewController, UITableViewDelegate, UITableViewD
         } else {
             
             var myCell:ContactListCell = tableView.dequeueReusableCellWithIdentifier("cell", forIndexPath: indexPath) as ContactListCell
+
+            var contactItem = contactResults?[indexPath.row]
             
-            var contactItem:Contact = contacts[indexPath.row]
+            var recordid = contactItem?.recordid.intValue
             
-            var contactInfo:ContactInfo = retrievePersonInfo(contactItem.recordid.intValue)
+            var contactInfo:ContactInfo = retrievePersonInfo(recordid!, group: group)
             
             myCell.personNameLabel.text = contactInfo.personName
             myCell.daysSinceLastContactedLabel.text = "\(contactInfo.daysLastContacted)"
@@ -133,8 +143,14 @@ class ContactViewController: UIViewController, UITableViewDelegate, UITableViewD
         
     }
     
+    func loadContactDictionary() {
+        for group in groups {
+            contactsbygroup[group] = fetchContacts(group)
+        }
+    }
+    
     //Used to retrieve the latest from Contact and Insert the results into the contacts array
-    func fetchContacts() -> Bool {
+    func fetchContacts(group: Group) -> [Contact] {
         let fetchRequest = NSFetchRequest(entityName: "Contact")
         
         // Create a sort descriptor object that sorts on the "timerName"
@@ -145,17 +161,22 @@ class ContactViewController: UIViewController, UITableViewDelegate, UITableViewD
         // so it includes the sort descriptor
         fetchRequest.sortDescriptors = [sortDescriptor]
         
+        fetchRequest.predicate = NSPredicate(format: "groupRel == %@", group)
+        
+        var contactResults = [Contact]()
+        
         if let fetchResults = managedObjectContext!.executeFetchRequest(fetchRequest, error: nil) as? [Contact] {
-            contacts = fetchResults
+            contactResults = fetchResults
         }
-        return true
+        
+        return contactResults
     }
     
     //Used to retrieve the latest from Group and Insert the results into the groups array
     func fetchGroups() -> Bool {
         let fetchRequest = NSFetchRequest(entityName: "Group")
         
-        // Create a sort descriptor object that sorts on the "timerName"
+        // Create a sort descriptor object that sorts on the "name of the group"
         // property of the Core Data object
         let sortDescriptor = NSSortDescriptor(key: "name", ascending: true)
         
@@ -169,7 +190,7 @@ class ContactViewController: UIViewController, UITableViewDelegate, UITableViewD
         return true
     }
     
-    func retrievePersonInfo(person: ABRecordID) -> ContactInfo {
+    func retrievePersonInfo(person: ABRecordID, group: Group) -> ContactInfo {
         
         var personName:String = ""
         var lastContactedDate:String = "11/11/1989"
@@ -191,10 +212,83 @@ class ContactViewController: UIViewController, UITableViewDelegate, UITableViewD
         } else {
             NSLog("Cannot find record")
         }
+        
+        var permissions = fetchGroupPermissions(group)
+        
+        var lastContactDate:NSDate = fetchLastContactDate(group, permissions: permissions)
+        
+        var lastContactText = "\(lastContactDate)"
+        
+        if lastContactDate.isEqual(nil) {
+            lastContactText = "None"
+        } else {
+            
+        }
+        
+        var daysFromLastContactDate:Int = dateToDays(lastContactDate)
     
-        var contactItem:ContactInfo = ContactInfo.init(personName: personName, lastContactDate: lastContactedDate, daysLastContacted: daysLastContacted)
+        var contactItem:ContactInfo = ContactInfo.init(personName: personName, lastContactDate: lastContactText, daysLastContacted: daysFromLastContactDate)
         
         return contactItem
     }
     
+    func fetchLastContactDate(group: Group, permissions: [String]) -> NSDate {
+        let fetchRequest = NSFetchRequest(entityName: "History")
+        
+        if contains(permissions,"calls") {
+            fetchRequest.predicate = NSPredicate(format: "type == %@", "calls")
+        }
+        
+        if contains(permissions,"texts") {
+            fetchRequest.predicate = NSPredicate(format: "type == %@", "texts")
+        }
+        
+        if contains(permissions,"facetimes") {
+            fetchRequest.predicate = NSPredicate(format: "type == %@", "facetimes")
+        }
+        
+        let sortDescriptor = NSSortDescriptor(key: "date", ascending: false)
+        
+        fetchRequest.sortDescriptors = [sortDescriptor]
+        
+        fetchRequest.fetchLimit = 1
+        
+        var lastContactedDate = NSDate()
+        
+        if let fetchresult = managedObjectContext!.executeFetchRequest(fetchRequest, error: nil) as? [History] {
+            if fetchresult.isEmpty == false {
+                lastContactedDate = fetchresult[0].date
+            }
+        }
+        
+        return lastContactedDate
+    }
+    
+    func fetchGroupPermissions(group: Group) -> [String] {
+        let fetchRequest = NSFetchRequest(entityName: "Group")
+        
+        let predicate = NSPredicate(format: "self == %@", group)
+        
+        var permissions = [String]()
+        
+        if let fetchResults = managedObjectContext!.executeFetchRequest(fetchRequest, error: nil) as? [Group] {
+            if fetchResults[0].watchcalls {
+                permissions.append("Call")
+            }
+            if fetchResults[0].watchtexts {
+                permissions.append("Text")
+            }
+            if fetchResults[0].watchfacetimes {
+                permissions.append("Facetime")
+            }
+        }
+        
+        return permissions
+    }
+    
+    func dateToDays(date: NSDate) -> Int{
+        var current = NSDate()
+        
+        return Int(current.timeIntervalSinceDate(date))
+    }
 }

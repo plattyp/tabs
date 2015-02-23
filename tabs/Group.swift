@@ -17,6 +17,7 @@ class Group: NSManagedObject {
     @NSManaged var watchcalls: Bool
     @NSManaged var watchfacetimes: Bool
     @NSManaged var interval: String
+    @NSManaged var groupRel: NSSet
     
     class func createInManagedObjectContext(moc: NSManagedObjectContext, name: String, dayswatched: Int, watchtexts: Bool, watchcalls: Bool, watchfacetimes: Bool, interval: String) -> Group {
         let newGroup = NSEntityDescription.insertNewObjectForEntityForName("Group", inManagedObjectContext: moc) as Group
