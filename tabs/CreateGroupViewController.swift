@@ -32,6 +32,7 @@ class CreateGroupViewController: UIViewController, ABPeoplePickerNavigationContr
     @IBOutlet weak var trackedContactsLabel: UILabel!
     
     var groupObjectID  = NSManagedObjectID()
+    var isEditing = false
     var group = [Group]()
     var contacts = [ABRecordID]()
     var groupInterval:String = "days"
@@ -119,33 +120,37 @@ class CreateGroupViewController: UIViewController, ABPeoplePickerNavigationContr
     }
     
     func setupView() {
-        if fetchGroup() {
+        println("Is editing?: \(isEditing)")
+        if isEditing {
+            fetchGroup()
             groupNameInput.text = group[0].name
             daysWatchedSlider.value = Float(group[0].dayswatched)
-            phoneCallToggle.enabled = group[0].watchcalls
-            textMessagesToggle.enabled = group[0].watchtexts
-            facetimesToggle.enabled = group[0].watchfacetimes
+            phoneCallToggle.setOn(group[0].watchcalls, animated: false)
+            textMessagesToggle.setOn(group[0].watchtexts, animated: false)
+            facetimesToggle.setOn(group[0].watchfacetimes, animated: false)
             changeGroupInterval(group[0].interval)
         } else {
+            groupNameInput.text = ""
+            daysWatchedSlider.value = 30.0
+            phoneCallToggle.setOn(false, animated: false)
+            textMessagesToggle.setOn(false, animated: false)
+            facetimesToggle.setOn(false, animated: false)
             daysWatchedLabel.text = "30 days"
         }
         refreshContactCounter()
     }
     
     //Used to retrieve the latest from TimersDefined and Insert the results into the timers array
-    func fetchGroup() -> Bool {
-        if groupObjectID.isAccessibilityElement {
+    func fetchGroup() {
+        if isEditing {
             let fetchRequest = NSFetchRequest(entityName: "Group")
             
             fetchRequest.predicate = NSPredicate(format: "self == %@", groupObjectID)
             
             if let fetchResults = managedObjectContext!.executeFetchRequest(fetchRequest, error: nil) as? [Group] {
                 group = fetchResults
-                return true
             }
         }
-        
-        return false
     }
     
     func refreshContactCounter() {

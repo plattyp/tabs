@@ -10,6 +10,7 @@ import UIKit
 import AddressBook
 import AddressBookUI
 import CoreData
+import CoreTelephony
 
 class ContactViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
 
@@ -33,9 +34,13 @@ class ContactViewController: UIViewController, UITableViewDelegate, UITableViewD
             &error).takeRetainedValue() as ABAddressBookRef
         }()
     
+    var selectedGroup = NSManagedObjectID()
+    var editingGroup = false
+    
     var groups = [Group]()
     var contacts  = [Contact]()
     var contactsbygroup = Dictionary<Group,Array<Contact>>()
+    var callcenter = CTCallCenter()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -51,9 +56,8 @@ class ContactViewController: UIViewController, UITableViewDelegate, UITableViewD
         super.viewWillAppear(animated)
         
         //Set the navigation bar
-        self.title = "Your Tabs"
-        var refreshButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.Refresh, target: self, action: "refreshCells")
-        navigationItem.leftBarButtonItem = refreshButton
+        self.title = "Your Groups"
+        
         var plusButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.Add, target: self, action: "addGroup")
         navigationItem.rightBarButtonItem = plusButton
         
@@ -66,18 +70,16 @@ class ContactViewController: UIViewController, UITableViewDelegate, UITableViewD
         // Dispose of any resources that can be recreated.
     }
     
-    //Used to redraw the cells
-    func refreshCells() {
-        println("Group Count: \(groups.count)")
-        
-        for group in groups {
-            println("\(group.name)")
-        }
-        
-        tableView.reloadData()
+    func addGroup() {
+        editingGroup = false
+        performSegueWithIdentifier("addGroupSegue", sender: nil)
     }
     
-    func addGroup() {
+    func editGroup(sender: UIButton) {
+        var group = groups[sender.tag]
+        editingGroup = true
+        selectedGroup = group.objectID
+        
         performSegueWithIdentifier("addGroupSegue", sender: nil)
     }
     
@@ -86,11 +88,33 @@ class ContactViewController: UIViewController, UITableViewDelegate, UITableViewD
         return groups.count
     }
     
-    //Modify the header
-    func tableView(tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+    func tableView(tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        
+        //Locate the group associated with the section
         var group = groups[section]
         
-        return group.name
+        //Create a view to put the label and button within
+        var view:UIView = UIView(frame: CGRectMake(10, 0, 300, 44))
+        
+        //Create the button
+        var addButton:UIButton = UIButton.buttonWithType(UIButtonType.DetailDisclosure) as UIButton
+        addButton.frame = CGRectMake(300, 5, 100, 50)
+        addButton.tag = section
+        addButton.addTarget(self, action: "editGroup:", forControlEvents: UIControlEvents.TouchUpInside)
+        
+        //Create the title label
+        var title:UILabel = UILabel(frame: CGRectMake(10, 5, 250, 50))
+        title.text = "\(group.name)"
+        
+        //Add button and title to the view
+        view.addSubview(addButton)
+        view.addSubview(title)
+        
+        return view
+    }
+    
+    func tableView(tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        return 50.0
     }
     
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -290,5 +314,18 @@ class ContactViewController: UIViewController, UITableViewDelegate, UITableViewD
         var current = NSDate()
         
         return Int(current.timeIntervalSinceDate(date))
+    }
+    
+    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+        if segue.identifier == "addGroupSegue" {
+            var createGroupViewController = segue.destinationViewController as CreateGroupViewController
+            
+            if editingGroup {
+                createGroupViewController.isEditing = true
+                createGroupViewController.groupObjectID = selectedGroup
+            } else {
+                createGroupViewController.isEditing = false
+            }
+        }
     }
 }
