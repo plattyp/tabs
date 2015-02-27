@@ -15,7 +15,8 @@ import CoreTelephony
 class ContactViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
 
     @IBOutlet weak var tableView: UITableView!
-
+    @IBOutlet weak var segmentedToggleContactsButton: UISegmentedControl!
+    
     //Reference to Managed Object Context
     lazy var managedObjectContext : NSManagedObjectContext? = {
         let appDelegate = UIApplication.sharedApplication().delegate as AppDelegate
@@ -42,6 +43,12 @@ class ContactViewController: UIViewController, UITableViewDelegate, UITableViewD
     var contactsbygroup = Dictionary<Group,Array<Contact>>()
     var callcenter = CTCallCenter()
     
+    //Color Palette
+    let seashellColor = UIColor(red: 64/255, green: 111/255, blue: 129/255, alpha: 1.0)
+    let lightBlueColor = UIColor(red: 191/255, green: 202/255, blue: 206/255, alpha: 1.0)
+    let lightCream = UIColor(red: 255/255, green: 255/255, blue: 251/255, alpha: 1.0)
+    let darkBlue = UIColor(red: 44/255, green: 76/255, blue: 99/255, alpha: 1.0)
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -50,6 +57,9 @@ class ContactViewController: UIViewController, UITableViewDelegate, UITableViewD
         
         //Load contacts to be readable by table
         loadContactDictionary()
+        
+        //Initialize table
+        initializeTable()
     }
     
     override func viewWillAppear(animated: Bool) {
@@ -58,11 +68,24 @@ class ContactViewController: UIViewController, UITableViewDelegate, UITableViewD
         //Set the navigation bar
         self.title = "Your Groups"
         
-        var plusButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.Add, target: self, action: "addGroup")
+        //Customize Navigation Controls
+        self.navigationController?.navigationBar.tintColor = seashellColor
+        self.navigationController?.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName : seashellColor]
+        self.navigationController?.navigationBar.barTintColor = lightCream
+        
+        let plusButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.Add, target: self, action: "addGroup")
         navigationItem.rightBarButtonItem = plusButton
         
-        //Other Properties
-        self.view.backgroundColor = UIColor.lightGrayColor()
+        let settingsButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.Organize, target: self, action: "goToSettings")
+        navigationItem.leftBarButtonItem = settingsButton
+        
+        //Customize Segmented Control
+        self.segmentedToggleContactsButton.backgroundColor = UIColor.whiteColor()
+        self.segmentedToggleContactsButton.layer.cornerRadius = 5
+        self.segmentedToggleContactsButton.selectedSegmentIndex = 1
+        
+        //Customize View
+        self.view.backgroundColor = lightBlueColor
     }
 
     override func didReceiveMemoryWarning() {
@@ -75,12 +98,22 @@ class ContactViewController: UIViewController, UITableViewDelegate, UITableViewD
         performSegueWithIdentifier("addGroupSegue", sender: nil)
     }
     
+    func goToSettings() {
+        println("Settings Button Pressed!")
+    }
+    
     func editGroup(sender: UIButton) {
         var group = groups[sender.tag]
         editingGroup = true
         selectedGroup = group.objectID
         
         performSegueWithIdentifier("addGroupSegue", sender: nil)
+    }
+    
+    func initializeTable() {
+        tableView.contentInset = UIEdgeInsetsMake(0, 0, 120, 0)
+        
+        tableView.backgroundColor = lightBlueColor
     }
     
     //Table View
@@ -100,10 +133,12 @@ class ContactViewController: UIViewController, UITableViewDelegate, UITableViewD
         var addButton:UIButton = UIButton.buttonWithType(UIButtonType.DetailDisclosure) as UIButton
         addButton.frame = CGRectMake(300, 5, 100, 50)
         addButton.tag = section
+        addButton.tintColor = darkBlue
         addButton.addTarget(self, action: "editGroup:", forControlEvents: UIControlEvents.TouchUpInside)
         
         //Create the title label
         var title:UILabel = UILabel(frame: CGRectMake(10, 5, 250, 50))
+        title.textColor = darkBlue
         title.text = "\(group.name)"
         
         //Add button and title to the view
@@ -217,8 +252,8 @@ class ContactViewController: UIViewController, UITableViewDelegate, UITableViewD
     func retrievePersonInfo(person: ABRecordID, group: Group) -> ContactInfo {
         
         var personName:String = ""
-        var lastContactedDate:String = "11/11/1989"
-        var daysLastContacted:Int = 22
+        var lastContactedDate:String = ""
+        var daysLastContacted:Int = 0
         
         if (person > 0) {
             let record = ABAddressBookGetPersonWithRecordID(addressBook, person)
@@ -230,18 +265,19 @@ class ContactViewController: UIViewController, UITableViewDelegate, UITableViewD
             let lastName  = ABRecordCopyValue(personRef, kABPersonLastNameProperty).takeRetainedValue() as String
             
             personName = firstName + " " + lastName
-            
-            println("Person's Name: \(personName)")
-            
         } else {
             NSLog("Cannot find record")
         }
         
         var permissions = fetchGroupPermissions(group)
         
+        let formatter = NSDateFormatter()
+        formatter.dateStyle = NSDateFormatterStyle.MediumStyle
+        formatter.timeStyle = NSDateFormatterStyle.NoStyle
+        
         var lastContactDate:NSDate = fetchLastContactDate(group, permissions: permissions)
         
-        var lastContactText = "\(lastContactDate)"
+        var lastContactText = "\(formatter.stringFromDate(lastContactDate))"
         
         if lastContactDate.isEqual(nil) {
             lastContactText = "None"

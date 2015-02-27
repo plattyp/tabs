@@ -17,8 +17,8 @@
                         <rect key="frame" x="0.0" y="64" width="414" height="736"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <tableView clipsSubviews="YES" contentMode="scaleToFill" ambiguous="YES" misplaced="YES" alwaysBounceVertical="YES" dataMode="prototypes" style="grouped" rowHeight="61" sectionHeaderHeight="10" sectionFooterHeight="10" translatesAutoresizingMaskIntoConstraints="NO" id="lTg-WP-Ip1">
-                                <rect key="frame" x="0.0" y="28" width="414" height="725"/>
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" ambiguous="YES" misplaced="YES" alwaysBounceVertical="YES" dataMode="prototypes" style="grouped" rowHeight="61" sectionHeaderHeight="1" sectionFooterHeight="10" translatesAutoresizingMaskIntoConstraints="NO" id="lTg-WP-Ip1">
+                                <rect key="frame" x="0.0" y="64" width="414" height="684"/>
                                 <color key="backgroundColor" cocoaTouchSystemColor="groupTableViewBackgroundColor"/>
                                 <prototypes>
                                     <tableViewCell contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="cell" rowHeight="61" id="yjR-WC-YdL" customClass="ContactListCell" customModule="tabs" customModuleProvider="target">
@@ -108,18 +108,31 @@
                                     <outlet property="delegate" destination="eSD-1V-XXN" id="TaG-9m-GBV"/>
                                 </connections>
                             </tableView>
+                            <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="ehc-kx-mjR">
+                                <rect key="frame" x="88" y="28" width="239" height="29"/>
+                                <segments>
+                                    <segment title="Overdue"/>
+                                    <segment title="All Contacts"/>
+                                </segments>
+                                <color key="tintColor" red="0.17254901959999999" green="0.29803921570000003" blue="0.38823529410000002" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                            </segmentedControl>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
                             <constraint firstAttribute="trailingMargin" secondItem="lTg-WP-Ip1" secondAttribute="trailing" constant="-16" id="2Rq-Nk-mTb"/>
+                            <constraint firstItem="lTg-WP-Ip1" firstAttribute="top" secondItem="0fs-rG-bwu" secondAttribute="bottom" id="B4e-kH-Eez"/>
                             <constraint firstItem="lTg-WP-Ip1" firstAttribute="leading" secondItem="ZpO-Ea-it0" secondAttribute="leadingMargin" constant="-16" id="M3L-BT-lfV"/>
                             <constraint firstAttribute="centerX" secondItem="lTg-WP-Ip1" secondAttribute="centerX" id="Tdi-fg-Egv"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="ehc-kx-mjR" secondAttribute="trailing" constant="71" id="fr1-tr-kRC"/>
+                            <constraint firstItem="ehc-kx-mjR" firstAttribute="top" secondItem="0fs-rG-bwu" secondAttribute="bottom" constant="8" id="zPZ-84-uvL"/>
+                            <constraint firstItem="ehc-kx-mjR" firstAttribute="leading" secondItem="ZpO-Ea-it0" secondAttribute="leadingMargin" constant="72" id="zfB-kP-7Q8"/>
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" id="G9s-HL-RWD"/>
                     <nil key="simulatedTopBarMetrics"/>
                     <simulatedScreenMetrics key="simulatedDestinationMetrics" type="retina55"/>
                     <connections>
+                        <outlet property="segmentedToggleContactsButton" destination="ehc-kx-mjR" id="RbH-Fx-laI"/>
                         <outlet property="tableView" destination="lTg-WP-Ip1" id="6Mq-gk-dBg"/>
                         <segue destination="rV4-th-lbM" kind="show" identifier="addGroupSegue" id="hnF-pO-cAB"/>
                     </connections>
@@ -165,6 +178,7 @@
                             </label>
                             <slider opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="30" minValue="1" maxValue="365" translatesAutoresizingMaskIntoConstraints="NO" id="sJN-jh-goL">
                                 <rect key="frame" x="14" y="214" width="386" height="57"/>
+                                <color key="tintColor" red="0.17254901959999999" green="0.29803921570000003" blue="0.38823529410000002" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <connections>
                                     <action selector="sliderChanged:" destination="rV4-th-lbM" eventType="valueChanged" id="YCf-nx-Sg5"/>
                                 </connections>
@@ -204,7 +218,7 @@
                             </label>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="eSS-h0-WVq">
                                 <rect key="frame" x="16" y="496" width="382" height="72"/>
-                                <color key="backgroundColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                <color key="backgroundColor" red="0.17254901960784313" green="0.29803921568627451" blue="0.38823529411764707" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="72" id="I3f-Ak-MHT"/>
                                 </constraints>
@@ -231,6 +245,7 @@
                             <button opaque="NO" contentMode="scaleToFill" ambiguous="YES" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="yfn-sL-Mon">
                                 <rect key="frame" x="219" y="451" width="76" height="30"/>
                                 <state key="normal" title="(Manage)">
+                                    <color key="titleColor" red="0.74901960779999999" green="0.79215686269999996" blue="0.80784313730000001" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <connections>
@@ -240,6 +255,7 @@
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="fhi-Dz-bNE">
                                 <rect key="frame" x="67" y="167" width="116" height="30"/>
                                 <state key="normal" title="(Change Interval)">
+                                    <color key="titleColor" red="0.74901960779999999" green="0.79215686269999996" blue="0.80784313730000001" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <connections>

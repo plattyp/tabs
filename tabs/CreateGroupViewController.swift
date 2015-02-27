@@ -40,23 +40,38 @@ class CreateGroupViewController: UIViewController, ABPeoplePickerNavigationContr
     @IBAction func manageContactsButton(sender: AnyObject) {
         performSegueWithIdentifier("manageContactsSegue", sender: self)
     }
+
     
     @IBAction func createGroupButton(sender: AnyObject) {
+        let units = Int(convertDaysAndWeeks(groupInterval, currentValue: daysWatchedSlider.value, destInterval: "days"))
         
-        var days = Int(round(daysWatchedSlider.value))
-        
-        var group = Group.createInManagedObjectContext(managedObjectContext!, name: groupNameInput.text, dayswatched: days, watchtexts: textMessagesToggle.enabled, watchcalls: phoneCallToggle.enabled, watchfacetimes: facetimesToggle.enabled, interval: groupInterval)
-        
-        save()
-        
-        //Save contacts to the group
-        for contact in contacts {
-            Contact.createInManagedObjectContext(managedObjectContext!, recordid: Int(contact), group: group)
+        if isEditing {
+            var selectedObject = group[0]
+            
+            selectedObject.setValue(groupNameInput.text, forKey: "name")
+            selectedObject.setValue(units, forKey: "dayswatched")
+            selectedObject.setValue(textMessagesToggle.on, forKey: "watchtexts")
+            selectedObject.setValue(phoneCallToggle.on, forKey: "watchcalls")
+            selectedObject.setValue(facetimesToggle.on, forKey: "watchfacetimes")
+            selectedObject.setValue(groupInterval, forKey: "interval")
+            
             save()
+            
+            //Edit Existing Contacts
+            
+        } else {
+            let group = Group.createInManagedObjectContext(managedObjectContext!, name: groupNameInput.text, dayswatched: units, watchtexts: textMessagesToggle.on, watchcalls: phoneCallToggle.on, watchfacetimes: facetimesToggle.on, interval: groupInterval)
+            
+            save()
+            
+            //Save contacts to the group
+            for contact in contacts {
+                Contact.createInManagedObjectContext(managedObjectContext!, recordid: Int(contact), group: group)
+                save()
+            }
         }
         
         performSegueWithIdentifier("createToMainSegue", sender: nil)
-        
     }
     @IBAction func changeIntervalButton(sender: AnyObject) {
         let intervalAlert:UIAlertController = UIAlertController(title: "Interval", message: "Select an interval", preferredStyle: UIAlertControllerStyle.Alert)
@@ -67,12 +82,12 @@ class CreateGroupViewController: UIViewController, ABPeoplePickerNavigationContr
         
         if groupInterval == "days" {
             let weekAction = UIAlertAction(title: "Weeks", style: .Default) { (action) in
-                self.changeGroupInterval("weeks")
+                self.changeGroupInterval(self.groupInterval, currentValue: self.daysWatchedSlider.value, destInterval: "weeks")
             }
             intervalAlert.addAction(weekAction)
         } else {
             let dayAction = UIAlertAction(title: "Days", style: .Default) { (action) in
-                self.changeGroupInterval("days")
+                self.changeGroupInterval(self.groupInterval, currentValue: self.daysWatchedSlider.value, destInterval: "days")
             }
             intervalAlert.addAction(dayAction)
         }
@@ -86,8 +101,8 @@ class CreateGroupViewController: UIViewController, ABPeoplePickerNavigationContr
     }
     
     @IBAction func sliderChanged(sender: AnyObject) {
-        var units = daysWatchedSlider.value
-        var unitsrounded = round(units)
+        let units = daysWatchedSlider.value
+        let unitsrounded = round(units)
         
         daysWatchedSlider.setValue(unitsrounded, animated: true)
         
@@ -103,6 +118,7 @@ class CreateGroupViewController: UIViewController, ABPeoplePickerNavigationContr
         
         daysWatchedLabel.text = "\(Int(unitsrounded)) \(suffix)"
     }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -120,15 +136,14 @@ class CreateGroupViewController: UIViewController, ABPeoplePickerNavigationContr
     }
     
     func setupView() {
-        println("Is editing?: \(isEditing)")
         if isEditing {
             fetchGroup()
+            
             groupNameInput.text = group[0].name
-            daysWatchedSlider.value = Float(group[0].dayswatched)
             phoneCallToggle.setOn(group[0].watchcalls, animated: false)
             textMessagesToggle.setOn(group[0].watchtexts, animated: false)
             facetimesToggle.setOn(group[0].watchfacetimes, animated: false)
-            changeGroupInterval(group[0].interval)
+            changeGroupInterval("days", currentValue: Float(group[0].dayswatched) , destInterval: group[0].interval)
         } else {
             groupNameInput.text = ""
             daysWatchedSlider.value = 30.0
@@ -150,6 +165,34 @@ class CreateGroupViewController: UIViewController, ABPeoplePickerNavigationContr
             if let fetchResults = managedObjectContext!.executeFetchRequest(fetchRequest, error: nil) as? [Group] {
                 group = fetchResults
             }
+            
+            fetchContacts(group[0])
+        }
+    }
+    
+    //Used to retrieve the latest from Contact and Insert the results into the contacts array
+    func fetchContacts(group: Group) {
+        let fetchRequest = NSFetchRequest(entityName: "Contact")
+        
+        // Create a sort descriptor object that sorts on the "timerName"
+        // property of the Core Data object
+        let sortDescriptor = NSSortDescriptor(key: "recordid", ascending: true)
+        
+        // Set the list of sort descriptors in the fetch request,
+        // so it includes the sort descriptor
+        fetchRequest.sortDescriptors = [sortDescriptor]
+        
+        fetchRequest.predicate = NSPredicate(format: "groupRel == %@", group)
+        
+        var contactResults = [Contact]()
+        
+        if let fetchResults = managedObjectContext!.executeFetchRequest(fetchRequest, error: nil) as? [Contact] {
+            contactResults = fetchResults
+        }
+        
+        for contact in contactResults {
+            let recordid = contact.recordid.intValue as ABRecordID
+            contacts.append(recordid)
         }
     }
     
@@ -157,24 +200,36 @@ class CreateGroupViewController: UIViewController, ABPeoplePickerNavigationContr
         trackedContactsLabel.text = "\(contacts.count)"
     }
     
-    func changeGroupInterval(interval: String) {
-        groupInterval = interval
+    func changeGroupInterval(interval: String, currentValue: Float, destInterval: String) {
+        groupInterval = destInterval
         
-        if interval == "days" {
-            var days = daysWatchedSlider.value * 7
-            
+        if destInterval == "days" {
             daysWatchedSlider.maximumValue = 365
-            daysWatchedSlider.value = days
-        } else if (interval == "weeks") {
-            var weeks = daysWatchedSlider.value / 7
-            
-            var rounded = round(weeks)
-            
-            daysWatchedSlider.value  = rounded
+        } else if (destInterval == "weeks") {
             daysWatchedSlider.maximumValue = 52
         }
         
+        daysWatchedSlider.value = convertDaysAndWeeks(interval, currentValue: currentValue, destInterval: destInterval)
+        
         sliderChanged(self)
+    }
+    
+    func convertDaysAndWeeks(interval: String, currentValue: Float, destInterval: String) -> Float {
+        var units = round(currentValue)
+        
+        if interval == "days" {
+            if destInterval == "weeks" {
+                return units / 7
+            } else if (destInterval == "days") {
+                return units
+            }
+        } else if (interval == "weeks") {
+            if destInterval == "days" {
+                return units * 7
+            }
+        }
+        
+        return 0
     }
     
     func save() {
