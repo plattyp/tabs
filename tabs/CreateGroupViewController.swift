@@ -30,6 +30,8 @@ class CreateGroupViewController: UIViewController, ABPeoplePickerNavigationContr
     @IBOutlet weak var textMessagesToggle: UISwitch!
     @IBOutlet weak var facetimesToggle: UISwitch!
     @IBOutlet weak var trackedContactsLabel: UILabel!
+    @IBOutlet weak var createGroupButton: UIButton!
+    @IBOutlet weak var deleteGroupButton: UIButton!
     
     var groupObjectID  = NSManagedObjectID()
     var isEditing = false
@@ -41,23 +43,45 @@ class CreateGroupViewController: UIViewController, ABPeoplePickerNavigationContr
         performSegueWithIdentifier("manageContactsSegue", sender: self)
     }
 
+    @IBAction func deleteGroupButtonPressed(sender: AnyObject) {
+        deleteAlertConfirmation()
+    }
     
     @IBAction func createGroupButton(sender: AnyObject) {
         let units = Int(convertDaysAndWeeks(groupInterval, currentValue: daysWatchedSlider.value, destInterval: "days"))
         
         if isEditing {
-            var selectedObject = group[0]
+            var selectedGroup = group[0]
             
-            selectedObject.setValue(groupNameInput.text, forKey: "name")
-            selectedObject.setValue(units, forKey: "dayswatched")
-            selectedObject.setValue(textMessagesToggle.on, forKey: "watchtexts")
-            selectedObject.setValue(phoneCallToggle.on, forKey: "watchcalls")
-            selectedObject.setValue(facetimesToggle.on, forKey: "watchfacetimes")
-            selectedObject.setValue(groupInterval, forKey: "interval")
+            //Update Group Attributes
+            selectedGroup.setValue(groupNameInput.text, forKey: "name")
+            selectedGroup.setValue(units, forKey: "dayswatched")
+            selectedGroup.setValue(textMessagesToggle.on, forKey: "watchtexts")
+            selectedGroup.setValue(phoneCallToggle.on, forKey: "watchcalls")
+            selectedGroup.setValue(facetimesToggle.on, forKey: "watchfacetimes")
+            selectedGroup.setValue(groupInterval, forKey: "interval")
+            
+            //Update Contacts
+            
+            //Retrieve Current Contacts
+            var currentContacts = fetchContacts(selectedGroup)
+            
+            //Delete all contacts not in the new contact list
+            for currentContact in currentContacts {
+                if contains(contacts,currentContact) == false {
+                    let contactForDeletion = fetchContact(Int(currentContact), group: selectedGroup)
+                    managedObjectContext?.deleteObject(contactForDeletion)
+                }
+            }
+            
+            //Add all contacts that were previously in the contact list
+            for contact in contacts {
+                if contains(currentContacts,contact) == false {
+                    Contact.createInManagedObjectContext(managedObjectContext!, recordid: Int(contact), group: selectedGroup)
+                }
+            }
             
             save()
-            
-            //Edit Existing Contacts
             
         } else {
             let group = Group.createInManagedObjectContext(managedObjectContext!, name: groupNameInput.text, dayswatched: units, watchtexts: textMessagesToggle.on, watchcalls: phoneCallToggle.on, watchfacetimes: facetimesToggle.on, interval: groupInterval)
@@ -139,12 +163,24 @@ class CreateGroupViewController: UIViewController, ABPeoplePickerNavigationContr
         if isEditing {
             fetchGroup()
             
+            //Adjust visible buttons
+            createGroupButton.setTitle("Edit Group", forState: UIControlState.Normal)
+            deleteGroupButton.hidden = false
+            
+            //Input preparation
             groupNameInput.text = group[0].name
             phoneCallToggle.setOn(group[0].watchcalls, animated: false)
             textMessagesToggle.setOn(group[0].watchtexts, animated: false)
             facetimesToggle.setOn(group[0].watchfacetimes, animated: false)
+            
+            //Adjust times for the slider
             changeGroupInterval("days", currentValue: Float(group[0].dayswatched) , destInterval: group[0].interval)
         } else {
+            //Adjust visible buttons
+            createGroupButton.setTitle("Create Group", forState: UIControlState.Normal)
+            deleteGroupButton.hidden = true
+            
+            //Input preparation
             groupNameInput.text = ""
             daysWatchedSlider.value = 30.0
             phoneCallToggle.setOn(false, animated: false)
@@ -166,12 +202,12 @@ class CreateGroupViewController: UIViewController, ABPeoplePickerNavigationContr
                 group = fetchResults
             }
             
-            fetchContacts(group[0])
+            contacts = fetchContacts(group[0])
         }
     }
     
     //Used to retrieve the latest from Contact and Insert the results into the contacts array
-    func fetchContacts(group: Group) {
+    func fetchContacts(group: Group) -> [ABRecordID] {
         let fetchRequest = NSFetchRequest(entityName: "Contact")
         
         // Create a sort descriptor object that sorts on the "timerName"
@@ -185,6 +221,7 @@ class CreateGroupViewController: UIViewController, ABPeoplePickerNavigationContr
         fetchRequest.predicate = NSPredicate(format: "groupRel == %@", group)
         
         var contactResults = [Contact]()
+        var contactRecordArray = [ABRecordID]()
         
         if let fetchResults = managedObjectContext!.executeFetchRequest(fetchRequest, error: nil) as? [Contact] {
             contactResults = fetchResults
@@ -192,8 +229,56 @@ class CreateGroupViewController: UIViewController, ABPeoplePickerNavigationContr
         
         for contact in contactResults {
             let recordid = contact.recordid.intValue as ABRecordID
-            contacts.append(recordid)
+            contactRecordArray.append(recordid)
         }
+        
+        return contactRecordArray
+    }
+    
+    func fetchContact(recordid: Int, group: Group) -> Contact {
+        let fetchRequest = NSFetchRequest(entityName: "Contact")
+        
+        fetchRequest.predicate = NSPredicate(format: "groupRel == %@ AND recordid == %d", group, recordid)
+        
+        var contactList = [Contact]()
+        
+        if let fetchResults = managedObjectContext!.executeFetchRequest(fetchRequest, error: nil) as? [Contact] {
+            contactList = fetchResults
+        }
+        
+        return contactList[0]
+    }
+    
+    func deleteGroup() {
+        let groupForDeletion = group[0]
+        
+        //Delete Contacts for Group
+        for contact in contacts {
+            var contactForDeletion = fetchContact(Int(contact), group: groupForDeletion)
+            managedObjectContext?.deleteObject(contactForDeletion)
+        }
+        
+        //Delete Group
+        managedObjectContext?.deleteObject(groupForDeletion)
+        
+        save()
+    }
+    
+    func deleteAlertConfirmation() {
+        let alertController = UIAlertController(title: "Delete Group", message: "Are you sure that you would like to delete this group?", preferredStyle: .Alert)
+        
+        let cancelAction = UIAlertAction(title: "Cancel", style: .Cancel) { (action) in
+        }
+        let deleteAction = UIAlertAction(title: "Delete", style: UIAlertActionStyle.Default) { (action) in
+            self.deleteGroup()
+            self.performSegueWithIdentifier("createToMainSegue", sender: nil)
+        }
+        alertController.addAction(cancelAction)
+        alertController.addAction(deleteAction)
+        
+        self.presentViewController(alertController, animated: true, completion: {
+            //
+        })
     }
     
     func refreshContactCounter() {
@@ -251,6 +336,7 @@ class CreateGroupViewController: UIViewController, ABPeoplePickerNavigationContr
         self.view.endEditing(true)
     }
     
+    //Passing data from Contact Selection delegate back to main view
     func manageContactsDidFinish(controller: ManageContactsTableViewController, contactList: [ABRecordID]) {
         contacts = contactList
         controller.navigationController?.popViewControllerAnimated(true)

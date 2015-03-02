@@ -14,10 +14,18 @@ class ContactListCell: UITableViewCell {
     @IBOutlet weak var personNameLabel: UILabel!
     @IBOutlet weak var dateLastContactedLabel: UILabel!
     @IBOutlet weak var daysSinceLastContactedLabel: UILabel!
+    @IBOutlet weak var daysUnderLabel: UILabel!
+    @IBOutlet weak var daysBackgroundBlock: UIView!
     
     override func awakeFromNib() {
         super.awakeFromNib()
         // Initialization code
+        setup()
+    }
+    
+    func setup() {
+        //Round out corners on background block
+        daysBackgroundBlock.layer.cornerRadius = 8
     }
 
     override func setSelected(selected: Bool, animated: Bool) {
