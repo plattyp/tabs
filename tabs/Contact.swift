@@ -12,11 +12,13 @@ import CoreData
 class Contact: NSManagedObject {
 
     @NSManaged var recordid: NSNumber
+    @NSManaged var anchordate: NSDate
     @NSManaged var groupRel: Group
     
-    class func createInManagedObjectContext(moc: NSManagedObjectContext, recordid: Int, group: Group) -> Contact {
+    class func createInManagedObjectContext(moc: NSManagedObjectContext, recordid: Int, anchordate: NSDate, group: Group) -> Contact {
         let newContact = NSEntityDescription.insertNewObjectForEntityForName("Contact", inManagedObjectContext: moc) as Contact
         newContact.recordid = recordid
+        newContact.anchordate = anchordate
         newContact.groupRel = group
         
         return newContact

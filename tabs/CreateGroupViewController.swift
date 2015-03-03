@@ -11,17 +11,6 @@ import CoreData
 import AddressBookUI
 
 class CreateGroupViewController: UIViewController, ABPeoplePickerNavigationControllerDelegate, ManageContactsDelegate {
-
-    //Reference to Managed Object Context
-    lazy var managedObjectContext : NSManagedObjectContext? = {
-        let appDelegate = UIApplication.sharedApplication().delegate as AppDelegate
-        if let managedObjectContext = appDelegate.managedObjectContext {
-            return managedObjectContext
-        }
-        else {
-            return nil
-        }
-        }()
     
     @IBOutlet weak var groupNameInput: UITextField!
     @IBOutlet weak var daysWatchedSlider: UISlider!
@@ -51,48 +40,9 @@ class CreateGroupViewController: UIViewController, ABPeoplePickerNavigationContr
         let units = Int(convertDaysAndWeeks(groupInterval, currentValue: daysWatchedSlider.value, destInterval: "days"))
         
         if isEditing {
-            var selectedGroup = group[0]
-            
-            //Update Group Attributes
-            selectedGroup.setValue(groupNameInput.text, forKey: "name")
-            selectedGroup.setValue(units, forKey: "dayswatched")
-            selectedGroup.setValue(textMessagesToggle.on, forKey: "watchtexts")
-            selectedGroup.setValue(phoneCallToggle.on, forKey: "watchcalls")
-            selectedGroup.setValue(facetimesToggle.on, forKey: "watchfacetimes")
-            selectedGroup.setValue(groupInterval, forKey: "interval")
-            
-            //Update Contacts
-            
-            //Retrieve Current Contacts
-            var currentContacts = fetchContacts(selectedGroup)
-            
-            //Delete all contacts not in the new contact list
-            for currentContact in currentContacts {
-                if contains(contacts,currentContact) == false {
-                    let contactForDeletion = fetchContact(Int(currentContact), group: selectedGroup)
-                    managedObjectContext?.deleteObject(contactForDeletion)
-                }
-            }
-            
-            //Add all contacts that were previously in the contact list
-            for contact in contacts {
-                if contains(currentContacts,contact) == false {
-                    Contact.createInManagedObjectContext(managedObjectContext!, recordid: Int(contact), group: selectedGroup)
-                }
-            }
-            
-            save()
-            
+            editGroup(units)
         } else {
-            let group = Group.createInManagedObjectContext(managedObjectContext!, name: groupNameInput.text, dayswatched: units, watchtexts: textMessagesToggle.on, watchcalls: phoneCallToggle.on, watchfacetimes: facetimesToggle.on, interval: groupInterval)
-            
-            save()
-            
-            //Save contacts to the group
-            for contact in contacts {
-                Contact.createInManagedObjectContext(managedObjectContext!, recordid: Int(contact), group: group)
-                save()
-            }
+            createGroup(units)
         }
         
         performSegueWithIdentifier("createToMainSegue", sender: nil)
@@ -315,6 +265,55 @@ class CreateGroupViewController: UIViewController, ABPeoplePickerNavigationContr
         }
         
         return 0
+    }
+    
+    func editGroup(units: Int) {
+        var selectedGroup = group[0]
+        
+        //Update Group Attributes
+        selectedGroup.setValue(groupNameInput.text, forKey: "name")
+        selectedGroup.setValue(units, forKey: "dayswatched")
+        selectedGroup.setValue(textMessagesToggle.on, forKey: "watchtexts")
+        selectedGroup.setValue(phoneCallToggle.on, forKey: "watchcalls")
+        selectedGroup.setValue(facetimesToggle.on, forKey: "watchfacetimes")
+        selectedGroup.setValue(groupInterval, forKey: "interval")
+        
+        //Update Contacts
+        
+        //Retrieve Current Contacts
+        var currentContacts = fetchContacts(selectedGroup)
+        
+        //Delete all contacts not in the new contact list
+        for currentContact in currentContacts {
+            if contains(contacts,currentContact) == false {
+                let contactForDeletion = fetchContact(Int(currentContact), group: selectedGroup)
+                managedObjectContext?.deleteObject(contactForDeletion)
+            }
+        }
+        
+        let datecreated = NSDate()
+        
+        //Add all contacts that were not previously in the contact list
+        for contact in contacts {
+            if contains(currentContacts,contact) == false {
+                Contact.createInManagedObjectContext(managedObjectContext!, recordid: Int(contact), anchordate: datecreated, group: selectedGroup)
+            }
+        }
+        
+        save()
+    }
+    
+    func createGroup(units: Int) {
+        let group = Group.createInManagedObjectContext(managedObjectContext!, name: groupNameInput.text, dayswatched: units, watchtexts: textMessagesToggle.on, watchcalls: phoneCallToggle.on, watchfacetimes: facetimesToggle.on, interval: groupInterval)
+        
+        let datecreated = NSDate()
+        
+        //Save contacts to the group
+        for contact in contacts {
+            Contact.createInManagedObjectContext(managedObjectContext!, recordid: Int(contact), anchordate: datecreated, group: group)
+        }
+        
+        save()
     }
     
     func save() {

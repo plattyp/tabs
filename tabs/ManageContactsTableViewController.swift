@@ -20,24 +20,6 @@ class ManageContactsTableViewController: UITableViewController, ABPeoplePickerNa
     let picker = ABPeoplePickerNavigationController()
     var delegate:ManageContactsDelegate? = nil
     var contacts = [ABRecordID]()
-    
-    //Reference to Managed Object Context
-    lazy var managedObjectContext : NSManagedObjectContext? = {
-        let appDelegate = UIApplication.sharedApplication().delegate as AppDelegate
-        if let managedObjectContext = appDelegate.managedObjectContext {
-            return managedObjectContext
-        }
-        else {
-            return nil
-        }
-        }()
-
-    //Reference to the Address Book
-    lazy var addressBook: ABAddressBookRef = {
-        var error: Unmanaged<CFError>?
-        return ABAddressBookCreateWithOptions(nil,
-            &error).takeRetainedValue() as ABAddressBookRef
-        }()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -85,7 +67,6 @@ class ManageContactsTableViewController: UITableViewController, ABPeoplePickerNa
 
         return cell
     }
-    
 
     func fetchContacts(group: Group) -> Bool {
         let fetchRequest = NSFetchRequest(entityName: "Contact")

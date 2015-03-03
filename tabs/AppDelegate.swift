@@ -10,6 +10,24 @@ import UIKit
 import AddressBook
 import CoreData
 
+//Reference to Managed Object Context
+var managedObjectContext : NSManagedObjectContext? = {
+    let appDelegate = UIApplication.sharedApplication().delegate as AppDelegate
+    if let managedObjectContext = appDelegate.managedObjectContext {
+        return managedObjectContext
+    }
+    else {
+        return nil
+    }
+    }()
+
+//Reference to the Address Book
+var addressBook: ABAddressBookRef = {
+    var error: Unmanaged<CFError>?
+    return ABAddressBookCreateWithOptions(nil,
+        &error).takeRetainedValue() as ABAddressBookRef
+    }()
+
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
 

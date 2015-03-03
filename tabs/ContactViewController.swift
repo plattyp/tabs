@@ -13,27 +13,9 @@ import CoreData
 import CoreTelephony
 
 class ContactViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
-
+    
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var segmentedToggleContactsButton: UISegmentedControl!
-    
-    //Reference to Managed Object Context
-    lazy var managedObjectContext : NSManagedObjectContext? = {
-        let appDelegate = UIApplication.sharedApplication().delegate as AppDelegate
-        if let managedObjectContext = appDelegate.managedObjectContext {
-            return managedObjectContext
-        }
-        else {
-            return nil
-        }
-        }()
-    
-    //Reference to the Address Book
-    lazy var addressBook: ABAddressBookRef = {
-        var error: Unmanaged<CFError>?
-        return ABAddressBookCreateWithOptions(nil,
-            &error).takeRetainedValue() as ABAddressBookRef
-        }()
     
     var selectedGroup = NSManagedObjectID()
     var editingGroup = false
@@ -171,8 +153,8 @@ class ContactViewController: UIViewController, UITableViewDelegate, UITableViewD
     
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
    
-        var group = groups[indexPath.section]
-        var contactResults = contactsbygroup[group]
+        let group = groups[indexPath.section]
+        let contactResults = contactsbygroup[group]
         
         var totalrowcount = contactResults?.count
         
@@ -189,9 +171,7 @@ class ContactViewController: UIViewController, UITableViewDelegate, UITableViewD
 
             var contactItem = contactResults?[indexPath.row]
             
-            var recordid = contactItem?.recordid.intValue
-            
-            var contactInfo:ContactInfo = retrievePersonInfo(recordid!, group: group)
+            var contactInfo:ContactInfo = retrievePersonInfo(contactItem!, group: group)
             
             myCell.personNameLabel.text = contactInfo.personName
             myCell.daysSinceLastContactedLabel.text = "\(contactInfo.daysLastContacted)"
@@ -200,6 +180,19 @@ class ContactViewController: UIViewController, UITableViewDelegate, UITableViewD
             return myCell
         }
         
+    }
+    
+    func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+        let group = groups[indexPath.section]
+        let permissions = fetchGroupPermissions(group)
+        let contactResults = contactsbygroup[group]
+        let contactSelected = contactResults?[indexPath.row]
+        
+        var permstring = ",".join(permissions)
+        
+        println("Permissions: \(permstring)")
+        
+        contactPersonMenu(contactSelected!, permissions: permissions)
     }
     
     func loadContactDictionary() {
@@ -249,14 +242,16 @@ class ContactViewController: UIViewController, UITableViewDelegate, UITableViewD
         return true
     }
     
-    func retrievePersonInfo(person: ABRecordID, group: Group) -> ContactInfo {
+    func retrievePersonInfo(contact: Contact, group: Group) -> ContactInfo {
+        
+        var recordid = contact.recordid.intValue
         
         var personName:String = ""
         var lastContactedDate:String = ""
         var daysLastContacted:Int = 0
         
-        if (person > 0) {
-            let record = ABAddressBookGetPersonWithRecordID(addressBook, person)
+        if (recordid > 0) {
+            let record = ABAddressBookGetPersonWithRecordID(addressBook, recordid)
             
             var personRef:ABRecordRef = Unmanaged<NSObject>.fromOpaque(record.toOpaque()).takeUnretainedValue() as ABRecordRef
             
@@ -275,14 +270,13 @@ class ContactViewController: UIViewController, UITableViewDelegate, UITableViewD
         formatter.dateStyle = NSDateFormatterStyle.MediumStyle
         formatter.timeStyle = NSDateFormatterStyle.NoStyle
         
-        var lastContactDate:NSDate = fetchLastContactDate(group, permissions: permissions)
+        var lastContactDate:NSDate = fetchLastContactDate(contact, permissions: permissions)
         
         var lastContactText = "\(formatter.stringFromDate(lastContactDate))"
         
-        if lastContactDate.isEqual(nil) {
-            lastContactText = "None"
-        } else {
-            
+        // This is set in the retrieving query if no history is found
+        if lastContactDate == contact.anchordate {
+            lastContactText = "(Never)"
         }
         
         var daysFromLastContactDate:Int = dateToDays(lastContactDate)
@@ -292,20 +286,22 @@ class ContactViewController: UIViewController, UITableViewDelegate, UITableViewD
         return contactItem
     }
     
-    func fetchLastContactDate(group: Group, permissions: [String]) -> NSDate {
+    func fetchLastContactDate(contact: Contact, permissions: [String]) -> NSDate {
         let fetchRequest = NSFetchRequest(entityName: "History")
         
-        if contains(permissions,"calls") {
-            fetchRequest.predicate = NSPredicate(format: "type == %@", "calls")
+        if contains(permissions,"call") {
+            fetchRequest.predicate = NSPredicate(format: "type == %@", "call")
         }
         
-        if contains(permissions,"texts") {
-            fetchRequest.predicate = NSPredicate(format: "type == %@", "texts")
+        if contains(permissions,"text") {
+            fetchRequest.predicate = NSPredicate(format: "type == %@", "text")
         }
         
-        if contains(permissions,"facetimes") {
-            fetchRequest.predicate = NSPredicate(format: "type == %@", "facetimes")
+        if contains(permissions,"facetime") {
+            fetchRequest.predicate = NSPredicate(format: "type == %@", "facetime")
         }
+        
+        fetchRequest.predicate = NSPredicate(format: "contactRel == %@", contact)
         
         let sortDescriptor = NSSortDescriptor(key: "date", ascending: false)
         
@@ -313,7 +309,7 @@ class ContactViewController: UIViewController, UITableViewDelegate, UITableViewD
         
         fetchRequest.fetchLimit = 1
         
-        var lastContactedDate = NSDate()
+        var lastContactedDate = contact.anchordate
         
         if let fetchresult = managedObjectContext!.executeFetchRequest(fetchRequest, error: nil) as? [History] {
             if fetchresult.isEmpty == false {
@@ -325,31 +321,69 @@ class ContactViewController: UIViewController, UITableViewDelegate, UITableViewD
     }
     
     func fetchGroupPermissions(group: Group) -> [String] {
-        let fetchRequest = NSFetchRequest(entityName: "Group")
-        
-        let predicate = NSPredicate(format: "self == %@", group)
         
         var permissions = [String]()
-        
-        if let fetchResults = managedObjectContext!.executeFetchRequest(fetchRequest, error: nil) as? [Group] {
-            if fetchResults[0].watchcalls {
-                permissions.append("Call")
-            }
-            if fetchResults[0].watchtexts {
-                permissions.append("Text")
-            }
-            if fetchResults[0].watchfacetimes {
-                permissions.append("Facetime")
-            }
+    
+        if group.watchcalls {
+            permissions.append("call")
         }
-        
+            
+        if group.watchtexts {
+            permissions.append("text")
+        }
+            
+        if group.watchfacetimes {
+            permissions.append("facetime")
+        }
+
         return permissions
     }
     
     func dateToDays(date: NSDate) -> Int{
-        var current = NSDate()
+        let currentDate = NSDate()
         
-        return Int(current.timeIntervalSinceDate(date))
+        let cal = NSCalendar.currentCalendar()
+        
+        let unit:NSCalendarUnit = .DayCalendarUnit
+        
+        let days = cal.components(unit, fromDate: date, toDate: currentDate, options: nil)
+        
+        return days.day
+    }
+    
+    //Contact Person ActionSheet Menu
+    func contactPersonMenu(contact: Contact, permissions: [String]) {
+        let alertController = UIAlertController(title: nil, message: "How would you like to contact this person?", preferredStyle: .ActionSheet)
+        
+        let cancelAction = UIAlertAction(title: "Cancel", style: .Cancel) { (action) in
+            // ...
+        }
+        alertController.addAction(cancelAction)
+        
+        if contains(permissions,"call") {
+            let PhoneAction = UIAlertAction(title: "Phone", style: .Default) { (action) in
+            // ...
+            }
+            alertController.addAction(PhoneAction)
+        }
+        
+        if contains(permissions,"text") {
+            let TextAction = UIAlertAction(title: "Text Message", style: .Default) { (action) in
+                // ...
+            }
+            alertController.addAction(TextAction)
+        }
+        
+        if contains(permissions,"facetime") {
+            let FacetimeAction = UIAlertAction(title: "Facetime", style: .Default) { (action) in
+                // ...
+            }
+            alertController.addAction(FacetimeAction)
+        }
+        
+        self.presentViewController(alertController, animated: true) {
+            // ...
+        }
     }
     
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {

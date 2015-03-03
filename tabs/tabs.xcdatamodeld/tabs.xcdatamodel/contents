@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <model userDefinedModelVersionIdentifier="" type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="6254" systemVersion="14B25" minimumToolsVersion="Automatic" macOSVersion="Automatic" iOSVersion="Automatic">
     <entity name="Contact" representedClassName="tabs.Contact" syncable="YES">
-        <attribute name="lastcontactdate" optional="YES" attributeType="Date" syncable="YES"/>
+        <attribute name="anchordate" optional="YES" attributeType="Date" syncable="YES"/>
         <attribute name="recordid" optional="YES" attributeType="Integer 32" defaultValueString="0" syncable="YES"/>
         <relationship name="groupRel" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Group" syncable="YES"/>
     </entity>
@@ -19,7 +19,7 @@
         <relationship name="contactRel" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Contact" syncable="YES"/>
     </entity>
     <elements>
-        <element name="Contact" positionX="-272" positionY="-139" width="128" height="88"/>
+        <element name="Contact" positionX="-272" positionY="-139" width="128" height="90"/>
         <element name="Group" positionX="-38" positionY="-270" width="128" height="133"/>
         <element name="History" positionX="-153" positionY="-171" width="128" height="88"/>
     </elements>
