@@ -35,7 +35,7 @@ class ContactViewController: UIViewController, UITableViewDelegate, UITableViewD
         super.viewDidLoad()
         
         //Retrieves all of the groups from CoreData
-        fetchGroups()
+        groups = Group.fetchGroups(managedObjectContext!)
         
         //Load contacts to be readable by table
         loadContactDictionary()
@@ -104,7 +104,6 @@ class ContactViewController: UIViewController, UITableViewDelegate, UITableViewD
     }
     
     func tableView(tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-        
         //Locate the group associated with the section
         var group = groups[section]
         
@@ -184,7 +183,8 @@ class ContactViewController: UIViewController, UITableViewDelegate, UITableViewD
     
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         let group = groups[indexPath.section]
-        let permissions = fetchGroupPermissions(group)
+        let permissions = group.fetchGroupPermissions()
+        //let permissions = fetchGroupPermissions(group)
         let contactResults = contactsbygroup[group]
         let contactSelected = contactResults?[indexPath.row]
         
@@ -197,49 +197,8 @@ class ContactViewController: UIViewController, UITableViewDelegate, UITableViewD
     
     func loadContactDictionary() {
         for group in groups {
-            contactsbygroup[group] = fetchContacts(group)
+            contactsbygroup[group] = group.fetchContacts()
         }
-    }
-    
-    //Used to retrieve the latest from Contact and Insert the results into the contacts array
-    func fetchContacts(group: Group) -> [Contact] {
-        let fetchRequest = NSFetchRequest(entityName: "Contact")
-        
-        // Create a sort descriptor object that sorts on the "timerName"
-        // property of the Core Data object
-        let sortDescriptor = NSSortDescriptor(key: "recordid", ascending: true)
-        
-        // Set the list of sort descriptors in the fetch request,
-        // so it includes the sort descriptor
-        fetchRequest.sortDescriptors = [sortDescriptor]
-        
-        fetchRequest.predicate = NSPredicate(format: "groupRel == %@", group)
-        
-        var contactResults = [Contact]()
-        
-        if let fetchResults = managedObjectContext!.executeFetchRequest(fetchRequest, error: nil) as? [Contact] {
-            contactResults = fetchResults
-        }
-        
-        return contactResults
-    }
-    
-    //Used to retrieve the latest from Group and Insert the results into the groups array
-    func fetchGroups() -> Bool {
-        let fetchRequest = NSFetchRequest(entityName: "Group")
-        
-        // Create a sort descriptor object that sorts on the "name of the group"
-        // property of the Core Data object
-        let sortDescriptor = NSSortDescriptor(key: "name", ascending: true)
-        
-        // Set the list of sort descriptors in the fetch request,
-        // so it includes the sort descriptor
-        fetchRequest.sortDescriptors = [sortDescriptor]
-        
-        if let fetchResults = managedObjectContext!.executeFetchRequest(fetchRequest, error: nil) as? [Group] {
-            groups = fetchResults
-        }
-        return true
     }
     
     func retrievePersonInfo(contact: Contact, group: Group) -> ContactInfo {
@@ -264,7 +223,7 @@ class ContactViewController: UIViewController, UITableViewDelegate, UITableViewD
             NSLog("Cannot find record")
         }
         
-        var permissions = fetchGroupPermissions(group)
+        var permissions = group.fetchGroupPermissions()
         
         let formatter = NSDateFormatter()
         formatter.dateStyle = NSDateFormatterStyle.MediumStyle
@@ -318,25 +277,6 @@ class ContactViewController: UIViewController, UITableViewDelegate, UITableViewD
         }
         
         return lastContactedDate
-    }
-    
-    func fetchGroupPermissions(group: Group) -> [String] {
-        
-        var permissions = [String]()
-    
-        if group.watchcalls {
-            permissions.append("call")
-        }
-            
-        if group.watchtexts {
-            permissions.append("text")
-        }
-            
-        if group.watchfacetimes {
-            permissions.append("facetime")
-        }
-
-        return permissions
     }
     
     func dateToDays(date: NSDate) -> Int{

@@ -27,7 +27,7 @@ class ManageContactsTableViewController: UITableViewController, ABPeoplePickerNa
         var doneButton = UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.Bordered, target: self, action: "handleDone")
         navigationItem.leftBarButtonItem = doneButton
         
-        var plusButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.Add, target: self, action: "addContact")
+        var plusButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.Add, target: self, action: "peoplePicker")
         navigationItem.rightBarButtonItem = plusButton
         
         self.title = "Manage Contacts"
@@ -66,30 +66,6 @@ class ManageContactsTableViewController: UITableViewController, ABPeoplePickerNa
         cell.nameLabel.text = name
 
         return cell
-    }
-
-    func fetchContacts(group: Group) -> Bool {
-        let fetchRequest = NSFetchRequest(entityName: "Contact")
-            
-        fetchRequest.predicate = NSPredicate(format: "groupRel == %@", group)
-        
-        fetchRequest.propertiesToFetch = ["recordid"]
-        
-        var contactList = [Contact]()
-        
-        if let fetchResults = managedObjectContext!.executeFetchRequest(fetchRequest, error: nil) as? [Contact] {
-            contactList = fetchResults
-        }
-        
-        for contact in contactList {
-            contacts.append(contact.recordid.intValue)
-        }
-        
-        return true
-    }
-    
-    func addContact() {
-        peoplePicker()
     }
     
     //For control of the people picker

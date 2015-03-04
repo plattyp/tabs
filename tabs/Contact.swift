@@ -23,5 +23,19 @@ class Contact: NSManagedObject {
         
         return newContact
     }
+    
+    class func fetchContact(moc: NSManagedObjectContext, recordid: Int, group: Group) -> Contact {
+        let fetchRequest = NSFetchRequest(entityName: "Contact")
+        
+        fetchRequest.predicate = NSPredicate(format: "groupRel == %@ AND recordid == %d", group, recordid)
+        
+        var contactList = [Contact]()
+        
+        if let fetchResults = moc.executeFetchRequest(fetchRequest, error: nil) as? [Contact] {
+            contactList = fetchResults
+        }
+        
+        return contactList[0]
+    }
 
 }
